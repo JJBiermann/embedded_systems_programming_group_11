@@ -34,6 +34,7 @@ static void button_task() {
             printf("Button was pressed!\n");
             flag = 0;
         }
+        vTaskDelay(200 / portTICK_PERIOD_MS);
     }
 }
 

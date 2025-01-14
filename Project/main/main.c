@@ -91,7 +91,7 @@ void print_info(){
     printf("Minimum free heap size: %ld bytes\n", esp_get_minimum_free_heap_size());
 }
 
-void display_demo(){
+/*void display_demo(){
     SSD1306_t dev;
     int center, top; //, bottom;
     //char lineChar[20];
@@ -180,7 +180,7 @@ void display_demo(){
     
     //delay 2 seconds
     vTaskDelay(2000 / portTICK_PERIOD_MS);
-}
+}*/
 
 void temperaure_humidity_demo(){
     i2c_dev_t dev = {0};
@@ -450,7 +450,7 @@ void gpio_demo(){
 
 void soilPollCB(TimerHandle_t xTimer) {
     soilPoll();
-    printf("Soil sensor: %d\n", val);
+    // printf("Soil sensor: %d\n", val);
 }
 
 void tempHumidPollCB(TimerHandle_t xTimer) {
@@ -471,23 +471,22 @@ void lightPollCB(TimerHandle_t xTimer) {
 
 void app_main(void)
 {
-    SSD1306_t oled_display;
     //Initialize the sensor (shared i2c) only once after boot.
 
     setupSensors();
-    init_display();
+    setup_display();
 
-    TimerHandle_t light_poll, temp_humid_poll, soil_poll, display_update;
+    TimerHandle_t light_poll, temp_humid_poll, soil_poll, update_display;
 
     light_poll = xTimerCreate("light_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, lightPollCB);                   // poll light sensor every 5s
     temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, tempHumidPollCB);     // poll temp_humid sensor every 5s
     soil_poll = xTimerCreate("soil_poll", pdMS_TO_TICKS(10000), pdTRUE, (void *)0, soilPollCB);                     // poll soil every 10s
-    display_update = xTimerCreate("display_update", pdMS_TO_TICKS(1000), pdTRUE, (void *) , update_display);
+    update_display = xTimerCreate("display_update", pdMS_TO_TICKS(1000), pdTRUE, (void *) 0, update_display2);
 
     xTimerStart(light_poll, pdMS_TO_TICKS(500));
     xTimerStart(temp_humid_poll, pdMS_TO_TICKS(500));
     xTimerStart(soil_poll, pdMS_TO_TICKS(500));
-    xTimerStart(display_update, pdMS_TO_TICKS(500));
+    xTimerStart(update_display, pdMS_TO_TICKS(500));
 
     //Initialize common I2C port for display, soil sensor, and temperature/humidity sensor
     //Initialized it as follows only once here in the main, then use the shared_init 
@@ -516,7 +515,7 @@ void app_main(void)
     // led_fade_demo();
 
     // printf("\nRunning display demo (look at the display!):\n");
-    display_demo();
+    // display_demo();
 
     // printf("\nRunning temperature/humidity sensor demo (20 reads - touch/blow on the sensor to see changes):\n");
     // temperaure_humidity_demo();

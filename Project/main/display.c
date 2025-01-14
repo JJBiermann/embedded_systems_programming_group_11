@@ -13,8 +13,8 @@ void setup_display() {
     ssd1306_init(&oled_display, 128, 64);
 }
 
-void update_display() {
-    ESP_LOGI(tag, "Writing a large Hello (notice the 2 different colours).");
+void update_display2(TimerHandle_t xTimer) {
+    // ESP_LOGI(tag, "Writing a large Hello (notice the 2 different colours).");
     ssd1306_clear_screen(&oled_display, false);
     //ssd1306_contrast(&dev, 0xff); 
     ssd1306_display_text(&oled_display, 0, "TEST_1", 6, false);

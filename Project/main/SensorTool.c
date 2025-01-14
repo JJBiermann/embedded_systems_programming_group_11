@@ -29,7 +29,6 @@ struct SoilData soilPoll() {
         .temp = temp
     };
     return data;
-    
 }
 
 int lightPoll() {

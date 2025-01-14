@@ -27,10 +27,6 @@
 //Stemma soil sensor library
 #include "Adafruit_Stemma_soil_sensor.h"
 
-#include "SensorTool.h"
-
-
-
 #define tag "EXAMPLE_ALL"
 
 #define RED_LED_GPIO 8
@@ -444,47 +440,27 @@ void gpio_demo(){
     
 }
 
+void light_adc_demo(){
+    //Configuring the ADC
+    adc1_config_width(ADC_WIDTH_BIT_12);
+    adc1_config_channel_atten(ADC1_CHANNEL_0, ADC_ATTEN_DB_11); //ADC1_CHANNEL_0 is on GPIO0 (GPIOzero)
 
-
-
-void soilPollCB(TimerHandle_t xTimer) {
-    soilPoll();
-    printf("Soil sensor: %d\n", val);
+    for (int i = 0; i < 20; i++)
+    {
+        int val = adc1_get_raw(ADC1_CHANNEL_0);
+        ESP_LOGI(tag, "Light sensor ADC value: %d", val);
+        vTaskDelay(pdMS_TO_TICKS(500));  // Delay for 1 second
+    }
 }
-
-void tempHumidPollCB(TimerHandle_t xTimer) {
-    float temp, humid;
-    tempHumidPoll(&temp, &humid);
-    
-    printf("Temp sensor: %.1f\n", temp);
-    printf("Humid sensor: %.1f\n", humid);
-}
-
-
-void lightPollCB(TimerHandle_t xTimer) {
-    int light;
-    lightPoll(&light);
-    printf("Light sensor: %d\n", light);
-}
-
 
 void app_main(void)
 {
-    //Initialize the sensor (shared i2c) only once after boot.
-    
-    setupSensors();
+    printf("Hello! Starting now with the demos ;-)\n");
 
-    TimerHandle_t light_poll, temp_humid_poll, soil_poll;
+    printf("\nPrinting device information:\n");
+    print_info();
 
-    light_poll = xTimerCreate("light_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, lightPollCB);                   // poll light sensor every 5s
-    temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, tempHumidPollCB);     // poll temp_humid sensor every 5s
-    soil_poll = xTimerCreate("soil_poll", pdMS_TO_TICKS(10000), pdTRUE, (void *)0, soilPollCB);                     // poll soil every 10s
-    
-    xTimerStart(light_poll, pdMS_TO_TICKS(500));
-    xTimerStart(temp_humid_poll, pdMS_TO_TICKS(500));
-    xTimerStart(soil_poll, pdMS_TO_TICKS(500));
-
-    //Initialize common I2C port for display, soil sensor, and temperature/humidity sensor
+    //Initialize common I2C port for display, soil sensor, and temperature/umidity sensor
     //Initialized it as follows only once here in the main, then use the shared_init 
     //functions for the different components as shown in this demo (see _demo functions).
     i2c_config_t conf;
@@ -498,36 +474,31 @@ void app_main(void)
     i2c_param_config(I2C_NUM, &conf);
     ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0));
 
-    // printf("\nRunning the GPIO demo:\n");
-    // gpio_demo();
+    printf("\nRunning the GPIO demo:\n");
+    gpio_demo();
 
-    // printf("\nRunning the light ADC demo (20 reads - cover/uncover the sensor):\n");
-    // light_adc_demo();
+    printf("\nRunning the light ADC demo (20 reads - cover/uncover the sensor):\n");
+    light_adc_demo();
 
-    // printf("\nRunning the buzzer demo:\n");
-    // buzzer_demo();
+    printf("\nRunning the buzzer demo:\n");
+    buzzer_demo();
 
-    // printf("\nRunning RGB LED demo (look at the LED!):\n");
-    // led_fade_demo();
+    printf("\nRunning RGB LED demo (look at the LED!):\n");
+    led_fade_demo();
 
-    // printf("\nRunning display demo (look at the display!):\n");
+    printf("\nRunning display demo (look at the display!):\n");
     display_demo();
 
-    // printf("\nRunning temperature/humidity sensor demo (20 reads - touch/blow on the sensor to see changes):\n");
-    // temperaure_humidity_demo();
+    printf("\nRunning temperature/humidity sensor demo (20 reads - touch/blow on the sensor to see changes):\n");
+    temperaure_humidity_demo();
 
-    // printf("\nRunning STEMMA soil sensor demo: (20 reads - touch the sensor to see changes)\n");
-    // stemma_soil_demo();
+    printf("\nRunning STEMMA soil sensor demo: (20 reads - touch the sensor to see changes)\n");
+    stemma_soil_demo();
 
-
-
-    // printf("\nThe demos are finished. Prees the reset button if you want to restart.\n");
-    // printf("Use the code in the demo in your own software. Goodbye!\n");
-    // fflush(stdout);
-
-    // vTaskDelay(pdMS_TO_TICKS(5000));  // Delay for 1 second
+    printf("\nThe demos are finished. Prees the reset button if you want to restart.\n");
+    printf("Use the code in the demo in your own software. Goodbye!\n");
+    fflush(stdout);
 
     //This would automatically restart the ESP32
-    // esp_restart();
+    //esp_restart();
 }
-

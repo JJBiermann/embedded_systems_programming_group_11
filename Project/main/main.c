@@ -90,6 +90,30 @@ void print_info(){
     printf("Minimum free heap size: %ld bytes\n", esp_get_minimum_free_heap_size());
 }
 
+void init_display() {
+
+    SSD1306_t dev;
+    int center, top; 
+
+    //Initialize the display (shared i2c) only once after boot.
+    i2c_master_shared_i2c_init(&dev);
+
+    //Uncomment this if you want to flip the display
+    //dev._flip = true;
+
+    ssd1306_init(&dev, 128, 64);
+    
+}
+
+void update_display() {
+    ESP_LOGI(tag, "Writing a large Hello (notice the 2 different colours).");
+    ssd1306_clear_screen(&dev, false);
+    //ssd1306_contrast(&dev, 0xff); 
+    ssd1306_display_text(&dev, 0, "TEST_1", 6, false);
+    ssd1306_display_text(&dev, 1, "TEST_2", 6, false);
+    ssd1306_display_text(&dev, 2, "TEST_3", 6, false);
+    ssd1306_display_text(&dev, 3, "TEST_4", 6, false);
+}
 void display_demo(){
     SSD1306_t dev;
     int center, top; //, bottom;
@@ -473,16 +497,19 @@ void app_main(void)
     //Initialize the sensor (shared i2c) only once after boot.
     
     setupSensors();
+    init_display();
 
-    TimerHandle_t light_poll, temp_humid_poll, soil_poll;
+    TimerHandle_t light_poll, temp_humid_poll, soil_poll, display_update;
 
     light_poll = xTimerCreate("light_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, lightPollCB);                   // poll light sensor every 5s
     temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, tempHumidPollCB);     // poll temp_humid sensor every 5s
     soil_poll = xTimerCreate("soil_poll", pdMS_TO_TICKS(10000), pdTRUE, (void *)0, soilPollCB);                     // poll soil every 10s
-    
+    display_update = xTimerCreate("display_update", pdMS_TO_TICKS(1000), pdTRUE, (void *) 0, update_display);
+
     xTimerStart(light_poll, pdMS_TO_TICKS(500));
     xTimerStart(temp_humid_poll, pdMS_TO_TICKS(500));
     xTimerStart(soil_poll, pdMS_TO_TICKS(500));
+    xTimerStart(display_update, pdMS_TO_TICKS(500));
 
     //Initialize common I2C port for display, soil sensor, and temperature/humidity sensor
     //Initialized it as follows only once here in the main, then use the shared_init 

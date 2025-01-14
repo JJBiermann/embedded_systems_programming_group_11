@@ -181,56 +181,6 @@ void display_demo(){
     vTaskDelay(2000 / portTICK_PERIOD_MS);
 }
 
-void temperaure_humidity_demo(){
-    i2c_dev_t dev = {0};
-
-    //Initialize the sensor (shared i2c) only once after boot.
-    ESP_ERROR_CHECK(am2320_shared_i2c_init(&dev, I2C_NUM));
-
-    float temperature, humidity;
-
-    for (int i = 0; i < 20; i++)
-    {
-        esp_err_t res = am2320_get_rht(&dev, &temperature, &humidity);
-        if (res == ESP_OK)
-            ESP_LOGI(tag, "Temperature: %.1f°C, Humidity: %.1f%%", temperature, humidity);
-        else
-            ESP_LOGE(tag, "Error reading data: %d (%s)", res, esp_err_to_name(res));
-
-        //500 ms delay
-        vTaskDelay((500) / portTICK_PERIOD_MS);
-    }
-}
-
-void stemma_soil_demo(){
-    int ret = ESP_OK;
-    uint16_t moisture_value = 0;
-    float temperature_value = 0;
-
-    //Initialize the sensor (shared i2c) only once after boot.
-    ESP_ERROR_CHECK(adafruit_stemma_soil_sensor_shared_i2c_init());
-
-    for (int i = 0; i < 10; i++)
-    {
-        ret = adafruit_stemma_soil_sensor_read_moisture(I2C_NUM, &moisture_value);
-
-        if (ret == ESP_OK)
-        {
-            ESP_LOGI(tag, "Adafruit Stemma sensor value: =%u", moisture_value);
-        }
-
-        ret = adafruit_stemma_soil_sensor_read_temperature(I2C_NUM, &temperature_value);
-
-        if (ret == ESP_OK)
-        {
-            ESP_LOGI(tag, "Adafruit Stemma sensor value: =%f", temperature_value);
-        }
-        
-        //500 ms delay
-        vTaskDelay((500) / portTICK_PERIOD_MS);
-    }
-}
-
 void led_fade_demo(){
     // Prepare and then apply the LEDC PWM timer configuration (one time can drive multiple channels)
     ledc_timer_config_t ledc_timer = {
@@ -444,40 +394,50 @@ void gpio_demo(){
     
 }
 
-
-
-
 void soilPollCB(TimerHandle_t xTimer) {
-    soilPoll();
-    printf("Soil sensor: %d\n", val);
+    struct SoilData data = soilPoll();
+    if (data.valid) {
+        printf("Soil Moist: %d\n", data.moist);
+        printf("Soil Temp: %.1f\n", data.temp);
+    } else {
+        printf("Soil Moist: Error\n");
+        printf("Soil Temp: Error\n");
+    }
 }
 
 void tempHumidPollCB(TimerHandle_t xTimer) {
-    float temp, humid;
-    tempHumidPoll(&temp, &humid);
-    
-    printf("Temp sensor: %.1f\n", temp);
-    printf("Humid sensor: %.1f\n", humid);
+    struct AirData data = tempHumidPoll();
+    if (data.valid) {
+        printf("Air Temp: %.1f\n", data.temp);
+        printf("Air Humid: %.1f\n", data.humid);
+    } else {
+        printf("Temp sensor: Error\n");
+        printf("Humid sensor: Error\n");
+    }
 }
 
 
 void lightPollCB(TimerHandle_t xTimer) {
-    int light;
-    lightPoll(&light);
+    int light = lightPoll();
     printf("Light sensor: %d\n", light);
+}
+
+
+
+
+void Display(struct SensorData data) {
+    printf("Light: %d, Soil Moisture: %d, Soil Temperature: %.1f, Air Temperature: %0.1f, Air Humidity: %0.1f", data.light, data.soil.moist, data.soil.temp, data.air.temp, data.air.humid);
 }
 
 
 void app_main(void)
 {
-    //Initialize the sensor (shared i2c) only once after boot.
-    
     setupSensors();
 
     TimerHandle_t light_poll, temp_humid_poll, soil_poll;
 
-    light_poll = xTimerCreate("light_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, lightPollCB);                   // poll light sensor every 5s
-    temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, tempHumidPollCB);     // poll temp_humid sensor every 5s
+    light_poll = xTimerCreate("light_poll", pdMS_TO_TICKS(3000), pdTRUE, (void *)0, lightPollCB);                   // poll light sensor every 5s
+    temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(6000), pdTRUE, (void *)0, tempHumidPollCB);     // poll temp_humid sensor every 5s
     soil_poll = xTimerCreate("soil_poll", pdMS_TO_TICKS(10000), pdTRUE, (void *)0, soilPollCB);                     // poll soil every 10s
     
     xTimerStart(light_poll, pdMS_TO_TICKS(500));
@@ -501,9 +461,6 @@ void app_main(void)
     // printf("\nRunning the GPIO demo:\n");
     // gpio_demo();
 
-    // printf("\nRunning the light ADC demo (20 reads - cover/uncover the sensor):\n");
-    // light_adc_demo();
-
     // printf("\nRunning the buzzer demo:\n");
     // buzzer_demo();
 
@@ -511,13 +468,7 @@ void app_main(void)
     // led_fade_demo();
 
     // printf("\nRunning display demo (look at the display!):\n");
-    display_demo();
-
-    // printf("\nRunning temperature/humidity sensor demo (20 reads - touch/blow on the sensor to see changes):\n");
-    // temperaure_humidity_demo();
-
-    // printf("\nRunning STEMMA soil sensor demo: (20 reads - touch the sensor to see changes)\n");
-    // stemma_soil_demo();
+    // display_demo();
 
 
 

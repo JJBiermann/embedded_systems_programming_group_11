@@ -121,17 +121,17 @@ void app_main(void)
     setupLED();
     setup_display();
 
-    TimerHandle_t light_poll, temp_humid_poll, soil_poll, display;
+    TimerHandle_t light_poll, temp_humid_poll, soil_poll;
+    TaskHandle_t display_task_handle = NULL;
 
     light_poll = xTimerCreate("light_poll", pdMS_TO_TICKS(3000), pdTRUE, (void *)0, lightPollCB);                   // poll light sensor every 5s
     temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(6000), pdTRUE, (void *)0, tempHumidPollCB);     // poll temp_humid sensor every 5s
     soil_poll = xTimerCreate("soil_poll", pdMS_TO_TICKS(10000), pdTRUE, (void *)0, soilPollCB);                     // poll soil every 10s
-    display = xTimerCreate("display", pdMS_TO_TICKS(2000), pdTRUE, (void*) 0, update_display);
+    xTaskCreate(update_display, "display", 4096, (void*) &data, 10, &display_task_handle);
     
     xTimerStart(light_poll, pdMS_TO_TICKS(500));
     xTimerStart(temp_humid_poll, pdMS_TO_TICKS(500));
     xTimerStart(soil_poll, pdMS_TO_TICKS(500));
-    xTimerStart(display, pdMS_TO_TICKS(500));
 
 
     // printf("\nRunning the GPIO demo:\n");

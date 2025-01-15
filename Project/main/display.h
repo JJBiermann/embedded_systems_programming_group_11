@@ -35,6 +35,6 @@
 static SSD1306_t oled_display;
 
 void setup_display(void);
-void update_display(TimerHandle_t xTimer);
+void update_display(void* pvParameters);
 
 #endif 

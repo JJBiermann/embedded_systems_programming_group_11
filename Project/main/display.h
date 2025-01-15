@@ -33,9 +33,8 @@
 #include "Adafruit_Stemma_soil_sensor.h"
 
 
-static SSD1306_t oled_display;
-
-void setup_display();
+SSD1306_t* setup_display();
 void update_display2(TimerHandle_t xTimer);
+void shutdown_display(SSD1306_t* oled_display_ptr);
 
 #endif 

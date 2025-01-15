@@ -471,26 +471,11 @@ void lightPollCB(TimerHandle_t xTimer) {
 
 void app_main(void)
 {
-    //Initialize the sensor (shared i2c) only once after boot.
-
-    setupSensors();
-    setup_display();
-
-    TimerHandle_t light_poll, temp_humid_poll, soil_poll, update_display;
-
-    light_poll = xTimerCreate("light_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, lightPollCB);                   // poll light sensor every 5s
-    temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, tempHumidPollCB);     // poll temp_humid sensor every 5s
-    soil_poll = xTimerCreate("soil_poll", pdMS_TO_TICKS(10000), pdTRUE, (void *)0, soilPollCB);                     // poll soil every 10s
-    update_display = xTimerCreate("display_update", pdMS_TO_TICKS(1000), pdTRUE, (void *) 0, update_display2);
-
-    xTimerStart(light_poll, pdMS_TO_TICKS(500));
-    xTimerStart(temp_humid_poll, pdMS_TO_TICKS(500));
-    xTimerStart(soil_poll, pdMS_TO_TICKS(500));
-    xTimerStart(update_display, pdMS_TO_TICKS(500));
-
+    
     //Initialize common I2C port for display, soil sensor, and temperature/humidity sensor
     //Initialized it as follows only once here in the main, then use the shared_init 
     //functions for the different components as shown in this demo (see _demo functions).
+    // NOTE: This block has to be first, since it sets parameters for the sensor init.
     i2c_config_t conf;
     conf.mode = I2C_MODE_MASTER;
     conf.sda_io_num = I2C_MASTER_SDA_GPIO;
@@ -502,6 +487,24 @@ void app_main(void)
     i2c_param_config(I2C_NUM, &conf);
     ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0));
 
+    //Initialize the sensor (shared i2c) only once after boot.
+    setupSensors();
+
+    //                                          ==== OLED DISPLAY ====
+    //Initialize the display
+    SSD1306_t* oled_display = setup_display();
+    // TODO: Just for now
+    //shutdown_display(oled_display);
+
+    TimerHandle_t light_poll, temp_humid_poll, soil_poll;
+
+    light_poll = xTimerCreate("light_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, lightPollCB);                   // poll light sensor every 5s
+    temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, tempHumidPollCB);     // poll temp_humid sensor every 5s
+    soil_poll = xTimerCreate("soil_poll", pdMS_TO_TICKS(10000), pdTRUE, (void *)0, soilPollCB);                     // poll soil every 10s
+
+    xTimerStart(light_poll, pdMS_TO_TICKS(500));
+    xTimerStart(temp_humid_poll, pdMS_TO_TICKS(500));
+    xTimerStart(soil_poll, pdMS_TO_TICKS(500));
     // printf("\nRunning the GPIO demo:\n");
     // gpio_demo();
 

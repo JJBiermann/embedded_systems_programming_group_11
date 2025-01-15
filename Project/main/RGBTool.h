@@ -15,7 +15,7 @@
 #define DUTY_MAX 8192
 #define RGB_MAX 255
 #define RGB_MIN 0
-#define RGB_RANGE (RGB_MAX - RGB_MIN) + 1
+#define RGB_RANGE (RGB_MAX - RGB_MIN + 1)
 
 #define RGB_GREEN (struct RGB){ .r = 0, .g = 255, .b = 0 }
 #define RGB_YELLOW (struct RGB){ .r = 255, .g = 255, .b = 0 }

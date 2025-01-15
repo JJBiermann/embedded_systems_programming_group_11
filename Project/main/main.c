@@ -1,15 +1,17 @@
 /*
  * A components demo for course 02112
  */
-
 #include <stdio.h>
+#include <string.h>
+
 #include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_chip_info.h"
 #include "esp_flash.h"
-#include <string.h>
+#include "esp_system.h"
 #include "esp_log.h"
+#include "esp_rom_gpio.h"
 
 //Driver libraries
 #include "driver/i2c.h"
@@ -28,58 +30,43 @@
 #include "Adafruit_Stemma_soil_sensor.h"
 
 #include "SensorTool.h"
+#include "RGBTool.h"
 
 
 
-#define tag "EXAMPLE_ALL"
 
-#define RED_LED_GPIO 8
-#define BUTTON_1_GPIO_PIN 18
-#define BUTTON_2_GPIO_PIN 19
+#define I2C_NUM    0
+#define SDA_PIN    2
+#define SCL_PIN    3
+#define I2C_SPEED   100000  // 100kHz speed
 
 #define I2C_MASTER_FREQ_HZ 75000 //Reduce it to 50000 if the temperature/umidity sensor fails
 #define I2C_MASTER_TX_BUF_DISABLE 0
 #define I2C_MASTER_RX_BUF_DISABLE 0
 #define I2C_MASTER_SDA_GPIO 2
 #define I2C_MASTER_SCL_GPIO 3
-#define I2C_NUM 0
+// #define I2C_NUM 0
+
 
 
 static struct SensorData data;
 
+
+
 void soilPollCB(TimerHandle_t xTimer) {
     struct SoilData soil = soilPoll();
     data.soil = soil;
-
-    // if (data.valid) {
-    //     printf("Soil Moist: %d\n", data.moist);
-    //     printf("Soil Temp: %.1f\n", data.temp);
-    // } else {
-    //     printf("Soil Moist: Error\n");
-    //     printf("Soil Temp: Error\n");
-    // }
 }
 
 void tempHumidPollCB(TimerHandle_t xTimer) {
     struct AirData air = tempHumidPoll();
     data.air = air;
-    // if (air.valid) {
-    //     data.air = air; 
-    //     //printf("Air Temp: %.1f\n", data.temp);
-    //     //printf("Air Humid: %.1f\n", data.humid);
-    // } else {
-    //     data.air.temp = -1;
-    //     data.air.humid = -1;
-    //     //printf("Temp sensor: Error\n");
-    //     //printf("Humid sensor: Error\n");
-    // }
 }
 
 
 void lightPollCB(TimerHandle_t xTimer) {
     int light = lightPoll();
     data.light = light;
-    // printf("Light sensor: %d\n", light);
 }
 
 
@@ -96,13 +83,27 @@ void display() {
     } else {
         printf("Air Temp.: NA, Air Humidity: NA\n");
     }
+    
+    if (data.air.valid) {
+        if (15 <= data.air.temp && data.air.temp <= 25) {
+            setRGB(RGB_GREEN);
+        } else if ((10 <= data.air.temp && data.air.temp < 15) || (25 < data.air.temp && data.air.temp <= 30)) {
+            setRGB(RGB_YELLOW);
+        } else {
+            setRGB(RGB_RED);
+        }
+    } else {
+        setRGB(RGB_LIGHT_BLUE);
+    }
 }
+
 
 
 void app_main(void)
 {
     setupSensors();
-
+    setupLED();
+    
     TimerHandle_t light_poll, temp_humid_poll, soil_poll;
 
     light_poll = xTimerCreate("light_poll", pdMS_TO_TICKS(3000), pdTRUE, (void *)0, lightPollCB);                   // poll light sensor every 5s
@@ -126,7 +127,6 @@ void app_main(void)
     conf.clk_flags = 0;
     i2c_param_config(I2C_NUM, &conf);
     ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0));
-
 
     while (1) {
         display();

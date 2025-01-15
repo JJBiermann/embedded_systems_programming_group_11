@@ -34,10 +34,29 @@
 
 static i2c_dev_t dev = {0};
 
+
+struct AirData {
+    bool valid;
+    float temp;
+    float humid;
+};
+
+struct SoilData {
+    bool valid;
+    uint16_t moist;
+    float temp;
+};
+
+struct SensorData {
+    int light;
+    struct AirData air;
+    struct SoilData soil;
+};
+
 void setupSensors();
-void lightPoll(int* light);
-void tempHumidPoll(float* temp, float* humid);
-void soilPoll();
+int lightPoll();
+struct AirData tempHumidPoll();
+struct SoilData soilPoll();
 
 
 

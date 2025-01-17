@@ -40,6 +40,8 @@
 #include "RGBTool.h"
 #include "WifiTool.h"
 
+#include "freertos/queue.h"
+
 
 #define I2C_NUM    0
 #define SDA_PIN    2
@@ -53,21 +55,49 @@
 #define I2C_MASTER_SCL_GPIO 3
 // #define I2C_NUM 0
 
-static struct SensorData data;
+#define ERROR_TAG "ERROR"
+
+static union SensorDataUnion data;
+static QueueHandle_t displayQueue;
+
+void setupQueues() {
+    displayQueue = xQueueCreate(10, sizeof(struct Message));
+
+    if (displayQueue == NULL) {
+        printf("Queue creation went wrong!\n");
+    } else {
+        printf("Queue creation was successful!\n");
+    }
+}
 
 void soilPollCB(TimerHandle_t xTimer) {
     struct SoilData soil = soilPoll();
-    data.soil = soil;
+    struct Message* msg = (struct Message*) malloc(sizeof(struct Message));
+    msg->mode = 'S';
+    msg->sensorData.soil = soil;
+    if(xQueueSend(displayQueue, (void*) msg, (TickType_t) 1000) != pdTRUE) {
+        ESP_LOGI(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
+    }
 }
 
 void tempHumidPollCB(TimerHandle_t xTimer) {
     struct AirData air = tempHumidPoll();
-    data.air = air;
+    struct Message* msg = (struct Message*) malloc(sizeof(struct Message));
+    msg->mode = 'A';
+    msg->sensorData.air = air;
+    if(xQueueSend(displayQueue, (void*) msg, (TickType_t) 1000) != pdTRUE) {
+        ESP_LOGI(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
+    }
 }
 
 void lightPollCB(TimerHandle_t xTimer) {
     int light = lightPoll();
-    data.light = light;
+    struct Message* msg = (struct Message*) malloc(sizeof(struct Message));
+    msg->mode = 'L';
+    msg->sensorData.light = light;
+    if(xQueueSend(displayQueue, (void*) msg, (TickType_t) 1000) != pdTRUE) {
+        ESP_LOGI(ERROR_TAG, "There was an error, transmitting data from the light sensor!\n");
+    }
 }
 
 void display() {
@@ -113,28 +143,21 @@ void app_main(void)
     i2c_param_config(I2C_NUM, &conf);
     ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0));
 
+    setupQueues();
     setupSensors();
     setupLED();
     setup_display();
-    setupWifi();
+    //setupWifi();
 
     TimerHandle_t light_poll, temp_humid_poll, soil_poll;
     TaskHandle_t display_task_handle = NULL;
-
-
-    esp_err_t ret = nvs_flash_init();
-    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
-        ESP_ERROR_CHECK(nvs_flash_erase());
-        ret = nvs_flash_init();
-    }
-    ESP_ERROR_CHECK(ret);
 
     light_poll      = xTimerCreate("light_poll", pdMS_TO_TICKS(1000), pdTRUE, (void *)0, lightPollCB);
     temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(1000), pdTRUE, (void *)0, tempHumidPollCB);
     soil_poll       = xTimerCreate("soil_poll", pdMS_TO_TICKS(1000), pdTRUE, (void *)0, soilPollCB);
 
-    xTaskCreate(update_display, "display", 4096, (void*) &data, 10, &display_task_handle);
-    xTaskCreate(&postData, "post_data", 8192, (void*) &data, 5, NULL);
+    xTaskCreate(update_display, "display", 8192, (void*) displayQueue, 10, &display_task_handle);
+    //xTaskCreate(&postData, "post_data", 8192, (void*) &data, 5, NULL);
     
     xTimerStart(light_poll, pdMS_TO_TICKS(500));
     xTimerStart(temp_humid_poll, pdMS_TO_TICKS(500));

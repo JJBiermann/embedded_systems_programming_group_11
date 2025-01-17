@@ -47,10 +47,22 @@ struct SoilData {
     float temp;
 };
 
+union SensorDataUnion {
+    int light;
+    struct AirData air;
+    struct SoilData soil;
+};
+
+
 struct SensorData {
     int light;
     struct AirData air;
     struct SoilData soil;
+};
+
+struct Message {
+    char mode; // can be L=light, S=soil or A=Air
+    union SensorDataUnion sensorData; // has to be read, according to the mode it is operating in.
 };
 
 void setupSensors();

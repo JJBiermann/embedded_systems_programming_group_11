@@ -1,17 +1,23 @@
-/*
- * A components demo for course 02112
- */
+
 #include <stdio.h>
 #include <string.h>
 
-#include "sdkconfig.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+
+#include "esp_wifi.h"
+#include "esp_http_client.h"
+#include "cJSON.h"
+
+#include "esp_event.h"
+#include "esp_log.h"
 #include "esp_chip_info.h"
 #include "esp_flash.h"
 #include "esp_system.h"
-#include "esp_log.h"
 #include "esp_rom_gpio.h"
+
+#include "nvs_flash.h"
+#include "sdkconfig.h"
 
 //Driver libraries
 #include "driver/i2c.h"
@@ -32,8 +38,7 @@
 
 #include "SensorTool.h"
 #include "RGBTool.h"
-
-
+#include "WifiTool.h"
 
 
 #define I2C_NUM    0
@@ -48,11 +53,7 @@
 #define I2C_MASTER_SCL_GPIO 3
 // #define I2C_NUM 0
 
-
-
 static struct SensorData data;
-
-
 
 void soilPollCB(TimerHandle_t xTimer) {
     struct SoilData soil = soilPoll();
@@ -64,13 +65,10 @@ void tempHumidPollCB(TimerHandle_t xTimer) {
     data.air = air;
 }
 
-
 void lightPollCB(TimerHandle_t xTimer) {
     int light = lightPoll();
     data.light = light;
 }
-
-
 
 void display() {
     printf("Light: %d, ", data.light);
@@ -98,8 +96,6 @@ void display() {
     }
 }
 
-
-
 void app_main(void)
 {
     //Initialize common I2C port for display, soil sensor, and temperature/humidity sensor
@@ -120,50 +116,27 @@ void app_main(void)
     setupSensors();
     setupLED();
     setup_display();
+    setupWifi();
 
     TimerHandle_t light_poll, temp_humid_poll, soil_poll;
     TaskHandle_t display_task_handle = NULL;
 
-    light_poll = xTimerCreate("light_poll", pdMS_TO_TICKS(3000), pdTRUE, (void *)0, lightPollCB);                   // poll light sensor every 5s
-    temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(6000), pdTRUE, (void *)0, tempHumidPollCB);     // poll temp_humid sensor every 5s
-    soil_poll = xTimerCreate("soil_poll", pdMS_TO_TICKS(10000), pdTRUE, (void *)0, soilPollCB);                     // poll soil every 10s
+
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
+
+    light_poll      = xTimerCreate("light_poll", pdMS_TO_TICKS(1000), pdTRUE, (void *)0, lightPollCB);
+    temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(1000), pdTRUE, (void *)0, tempHumidPollCB);
+    soil_poll       = xTimerCreate("soil_poll", pdMS_TO_TICKS(1000), pdTRUE, (void *)0, soilPollCB);
+
     xTaskCreate(update_display, "display", 4096, (void*) &data, 10, &display_task_handle);
+    xTaskCreate(&postData, "post_data", 8192, (void*) &data, 5, NULL);
     
     xTimerStart(light_poll, pdMS_TO_TICKS(500));
     xTimerStart(temp_humid_poll, pdMS_TO_TICKS(500));
     xTimerStart(soil_poll, pdMS_TO_TICKS(500));
-
-
-    // printf("\nRunning the GPIO demo:\n");
-    // gpio_demo();
-
-    // printf("\nRunning the light ADC demo (20 reads - cover/uncover the sensor):\n");
-    // light_adc_demo();
-
-    // printf("\nRunning the buzzer demo:\n");
-    // buzzer_demo();
-
-    // printf("\nRunning RGB LED demo (look at the LED!):\n");
-    // led_fade_demo();
-
-    // printf("\nRunning display demo (look at the display!):\n");
-    // display_demo();
-
-    // printf("\nRunning temperature/humidity sensor demo (20 reads - touch/blow on the sensor to see changes):\n");
-    // temperaure_humidity_demo();
-
-    // printf("\nRunning STEMMA soil sensor demo: (20 reads - touch the sensor to see changes)\n");
-    // stemma_soil_demo();
-
-
-
-    // printf("\nThe demos are finished. Prees the reset button if you want to restart.\n");
-    // printf("Use the code in the demo in your own software. Goodbye!\n");
-    // fflush(stdout);
-
-    // vTaskDelay(pdMS_TO_TICKS(5000));  // Delay for 1 second
-
-    //This would automatically restart the ESP32
-    // esp_restart();
 }
-

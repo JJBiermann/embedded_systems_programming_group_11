@@ -1,0 +1,122 @@
+Light: 667, Soil Moisture: 338, Soil Temp.: 29.9, Air Temp.: 24.9, Air Humidity: 31.9
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 667, Soil Moisture: 338, Soil Temp.: 29.9, Air Temp.: 24.9, Air Humidity: 31.7
+Display thread stack using: 1892
+Warning thread stack using: 3532
+I (915277) gpio: GPIO[0]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
+Light: 666, Soil Moisture: 338, Soil Temp.: 29.9, Air Temp.: 24.9, Air Humidity: 31.7
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 666, Soil Moisture: 338, Soil Temp.: 29.9, Air Temp.: 24.9, Air Humidity: 31.7
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 666, Soil Moisture: 338, Soil Temp.: 29.9, Air Temp.: 24.9, Air Humidity: 31.4
+Display thread stack using: 1892
+Warning thread stack using: 3532
+I (920377) gpio: GPIO[0]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
+Light: 731, Soil Moisture: 335, Soil Temp.: 30.4, Air Temp.: 24.9, Air Humidity: 31.4
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 731, Soil Moisture: 335, Soil Temp.: 30.4, Air Temp.: 24.9, Air Humidity: 31.4
+Display thread stack using: 1892
+Warning thread stack using: 3532
+I (925277) gpio: GPIO[0]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
+Light: 764, Soil Moisture: 335, Soil Temp.: 30.4, Air Temp.: 24.9, Air Humidity: 31.0
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 764, Soil Moisture: 335, Soil Temp.: 30.4, Air Temp.: 24.9, Air Humidity: 31.0
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 764, Soil Moisture: 335, Soil Temp.: 30.4, Air Temp.: 24.9, Air Humidity: 31.0
+Display thread stack using: 1892
+Warning thread stack using: 3532
+I (930377) gpio: GPIO[0]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
+Light: 712, Soil Moisture: 335, Soil Temp.: 30.3, Air Temp.: 24.9, Air Humidity: 30.8
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 712, Soil Moisture: 335, Soil Temp.: 30.3, Air Temp.: 24.9, Air Humidity: 30.8
+Display thread stack using: 1892
+Warning thread stack using: 3532
+I (935277) gpio: GPIO[0]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
+Light: 798, Soil Moisture: 335, Soil Temp.: 30.3, Air Temp.: 24.9, Air Humidity: 30.8
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 798, Soil Moisture: 335, Soil Temp.: 30.3, Air Temp.: 24.9, Air Humidity: 30.7
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 798, Soil Moisture: 335, Soil Temp.: 30.3, Air Temp.: 24.9, Air Humidity: 30.7
+Display thread stack using: 1892
+Warning thread stack using: 3532
+I (940377) gpio: GPIO[0]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
+Light: 648, Soil Moisture: 333, Soil Temp.: 30.3, Air Temp.: 24.9, Air Humidity: 30.7
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 648, Soil Moisture: 333, Soil Temp.: 30.3, Air Temp.: 24.9, Air Humidity: 30.6
+Display thread stack using: 1892
+Warning thread stack using: 3532
+I (945277) gpio: GPIO[0]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
+Light: 650, Soil Moisture: 333, Soil Temp.: 30.3, Air Temp.: 24.9, Air Humidity: 30.6
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 650, Soil Moisture: 333, Soil Temp.: 30.3, Air Temp.: 24.9, Air Humidity: 30.6
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 650, Soil Moisture: 333, Soil Temp.: 30.3, Air Temp.: 24.9, Air Humidity: 30.4
+Display thread stack using: 1892
+Warning thread stack using: 3532
+I (950377) gpio: GPIO[0]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
+Light: 632, Soil Moisture: 334, Soil Temp.: 30.3, Air Temp.: 24.9, Air Humidity: 30.4
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 632, Soil Moisture: 334, Soil Temp.: 30.3, Air Temp.: 24.9, Air Humidity: 30.4
+Display thread stack using: 1892
+Warning thread stack using: 3532
+I (955277) gpio: GPIO[0]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
+Light: 631, Soil Moisture: 334, Soil Temp.: 30.3, Air Temp.: 24.9, Air Humidity: 30.3
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 631, Soil Moisture: 334, Soil Temp.: 30.3, Air Temp.: 24.9, Air Humidity: 30.3
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 631, Soil Moisture: 334, Soil Temp.: 30.3, Air Temp.: 24.9, Air Humidity: 30.3
+Display thread stack using: 1892
+Warning thread stack using: 3532
+I (960377) gpio: GPIO[0]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
+Light: 632, Soil Moisture: 334, Soil Temp.: 30.2, Air Temp.: 24.9, Air Humidity: 30.2
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 632, Soil Moisture: 334, Soil Temp.: 30.2, Air Temp.: 24.9, Air Humidity: 30.2
+Display thread stack using: 1892
+Warning thread stack using: 3532
+I (965277) gpio: GPIO[0]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
+Light: 632, Soil Moisture: 334, Soil Temp.: 30.2, Air Temp.: 24.9, Air Humidity: 30.2
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 632, Soil Moisture: 334, Soil Temp.: 30.2, Air Temp.: 24.9, Air Humidity: 30.2
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 632, Soil Moisture: 334, Soil Temp.: 30.2, Air Temp.: 24.9, Air Humidity: 30.2
+Display thread stack using: 1892
+Warning thread stack using: 3532
+I (970377) gpio: GPIO[0]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
+Light: 633, Soil Moisture: 333, Soil Temp.: 30.5, Air Temp.: 24.9, Air Humidity: 30.2
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 633, Soil Moisture: 333, Soil Temp.: 30.5, Air Temp.: 24.9, Air Humidity: 30.1
+Display thread stack using: 1892
+Warning thread stack using: 3532
+I (975277) gpio: GPIO[0]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
+Light: 631, Soil Moisture: 333, Soil Temp.: 30.5, Air Temp.: 24.9, Air Humidity: 30.1
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 631, Soil Moisture: 333, Soil Temp.: 30.5, Air Temp.: 24.9, Air Humidity: 30.1
+Display thread stack using: 1892
+Warning thread stack using: 3532
+Light: 631, Soil Moisture: 333, Soil Temp.: 30.5, Air Temp.: 24.9, Air Humidity: 30.1
+Display thread stack using: 1892
+Warning thread stack using: 3532
+I (980377) gpio: GPIO[0]| InputEn: 0| OutputEn: 0| OpenDrain: 0| Pullup: 0| Pulldown: 0| Intr:0 
+Light: 634, Soil Moisture: 333, Soil Temp.: 29.9, Air Temp.: 24.9, Air Humidity: 30.1
+Display thread stack using: 1892
+Warning thread stack using: 3532

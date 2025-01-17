@@ -49,12 +49,13 @@ def main():
         print("Usage: python server.py <release|debug>")
         return
         
-    debug = sys.argv[1] == "debug"
+    #debug = sys.argv[1] == "debug"
 
-    if debug:
-        data_thread = threading.Thread(target=generate_data)
-        data_thread.daemon = True
-        data_thread.start()
+    #if debug:
+    #    data_thread = threading.Thread(target=generate_data)
+    #    data_thread.daemon = True
+    #    data_thread.start()
+
     app.run(host='0.0.0.0', port=5000)
 
 if __name__ == '__main__':

@@ -37,17 +37,32 @@ void update_display(void* pvParameters) {
             switch (msg.mode) {
                 case 'L':
                     snprintf(light_str,sizeof(light_str), "%-10s %4dI", "light:", msg.sensorData.light);
+                    ssd1306_clear_line(&oled_display, 5, false);
                     ssd1306_display_text(&oled_display, 5, light_str, sizeof(light_str), false);
                     break;
                 case 'A':
-                    snprintf(temperature_str,sizeof(temperature_str), "%-8s  %4.2fC", "Air:",msg.sensorData.air.temp);
-                    snprintf(humidity_str,sizeof(humidity_str), "%-8s  %4.2fC", "Humid.:", msg.sensorData.air.humid);
+                    if (msg.sensorData.air.valid) {
+                        snprintf(temperature_str,sizeof(temperature_str), "%-8s  %4.2fC", "Air:",msg.sensorData.air.temp);
+                        snprintf(humidity_str,sizeof(humidity_str), "%-8s  %4.2fC", "Humid.:", msg.sensorData.air.humid);
+                    } else {
+                        snprintf(temperature_str,sizeof(temperature_str), "%-8s  NA", "Air:");
+                        snprintf(humidity_str,sizeof(humidity_str), "%-8s  NA", "Humid.:");
+                    }
+                    ssd1306_clear_line(&oled_display, 3, false);
+                    ssd1306_clear_line(&oled_display, 4, false);
                     ssd1306_display_text(&oled_display, 3, temperature_str, sizeof(temperature_str), false);
                     ssd1306_display_text(&oled_display, 4, humidity_str, sizeof(humidity_str), false);
                     break;
                 case 'S':
-                    snprintf(soil_temp_str,sizeof(soil_temp_str), "%-8s  %4.2fC", "S.Temp:", msg.sensorData.soil.temp);
-                    snprintf(soil_moist_str,sizeof(soil_temp_str), "%-9s  %5u", "S.Moist:", msg.sensorData.soil.moist);
+                    if (msg.sensorData.soil.valid) {
+                        snprintf(soil_temp_str,sizeof(soil_temp_str), "%-8s  %4.2fC", "S.Temp:", msg.sensorData.soil.temp);
+                        snprintf(soil_moist_str,sizeof(soil_temp_str), "%-9s  %5u", "S.Moist:", msg.sensorData.soil.moist);
+                    } else {
+                        snprintf(soil_temp_str,sizeof(soil_temp_str), "%-8s  NA", "S.Temp:");
+                        snprintf(soil_moist_str,sizeof(soil_temp_str), "%-9s  NA", "S.Moist:");
+                    }
+                    ssd1306_clear_line(&oled_display, 6, false);
+                    ssd1306_clear_line(&oled_display, 7, false);
                     ssd1306_display_text(&oled_display, 6, soil_temp_str, sizeof(soil_temp_str), false);
                     ssd1306_display_text(&oled_display, 7, soil_moist_str, sizeof(soil_moist_str), false);
                     break;

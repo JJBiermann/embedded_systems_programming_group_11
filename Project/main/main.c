@@ -41,7 +41,9 @@
 #include "WifiTool.h"
 
 #include "freertos/queue.h"
-
+//#include "gpio_types.h"
+#include "esp_intr_alloc.h"
+#include "esp_timer.h"
 
 #define I2C_NUM    0
 #define SDA_PIN    2
@@ -57,12 +59,22 @@
 
 #define ERROR_TAG "ERROR"
 
+#define BTN_1_GPIO_PIN 18
+#define BTN_2_GPIO_PIN 19
+
 static union SensorDataUnion data;
 static QueueHandle_t displayQueue;
+static QueueHandle_t buttonOneIntQueue;
+static int fastPolling = 1;
+
+typedef struct {
+    TimerHandle_t light;
+    TimerHandle_t air;
+    TimerHandle_t soil;
+} TimerHandles;
 
 void setupQueues() {
     displayQueue = xQueueCreate(10, sizeof(struct Message));
-
     if (displayQueue == NULL) {
         printf("Queue creation went wrong!\n");
     } else {
@@ -100,6 +112,41 @@ void lightPollCB(TimerHandle_t xTimer) {
     }
 }
 
+void IRAM_ATTR buttonOneInterruptHandler(void* args) {
+    TimerHandles* timerHandles = (TimerHandles*) args;
+    static uint32_t last_interrupt_time = 0;
+    uint32_t current_time = esp_timer_get_time();  // Get time in microseconds
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE; // TODO: What is this? 
+    if (current_time - last_interrupt_time > 200000) {  // 200 ms debounce time
+        if (fastPolling) {
+            xTimerChangePeriodFromISR(timerHandles->light, pdMS_TO_TICKS(500), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(timerHandles->air, pdMS_TO_TICKS(500), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(timerHandles->soil, pdMS_TO_TICKS(500), &xHigherPriorityTaskWoken);
+            fastPolling = 0;
+        } else {
+            xTimerChangePeriodFromISR(timerHandles->light, pdMS_TO_TICKS(5000), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(timerHandles->air, pdMS_TO_TICKS(5000), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(timerHandles->soil, pdMS_TO_TICKS(5000), &xHigherPriorityTaskWoken);
+            fastPolling = 1;
+        }
+    }
+    last_interrupt_time = current_time;
+
+}
+
+void setupInterruptButton(TimerHandles* args) {
+    // Set button 1 pin to interrupt on high level
+    gpio_config_t io_conf; 
+    io_conf.pin_bit_mask = (1ULL<<BTN_1_GPIO_PIN);
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+    io_conf.intr_type = GPIO_INTR_NEGEDGE;
+    gpio_config(&io_conf);
+    gpio_install_isr_service(0);
+    gpio_isr_handler_add(BTN_1_GPIO_PIN, &buttonOneInterruptHandler, args);
+}
+
+// TODO: This should be removed. Just keep the setRGB part
 void display() {
     printf("Light: %d, ", data.light);
     if (data.soil.valid) {
@@ -152,11 +199,19 @@ void app_main(void)
     TimerHandle_t light_poll, temp_humid_poll, soil_poll;
     TaskHandle_t display_task_handle = NULL;
 
-    light_poll      = xTimerCreate("light_poll", pdMS_TO_TICKS(1000), pdTRUE, (void *)0, lightPollCB);
-    temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(1000), pdTRUE, (void *)0, tempHumidPollCB);
-    soil_poll       = xTimerCreate("soil_poll", pdMS_TO_TICKS(1000), pdTRUE, (void *)0, soilPollCB);
+    light_poll      = xTimerCreate("light_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, lightPollCB);
+    temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, tempHumidPollCB);
+    soil_poll       = xTimerCreate("soil_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, soilPollCB);
+
+    TimerHandles* handles = (TimerHandles*) malloc(sizeof(TimerHandles));
+    handles->light = light_poll; 
+    handles->soil = soil_poll;
+    handles->air = temp_humid_poll;
+
+    setupInterruptButton((void*) handles);
 
     xTaskCreate(update_display, "display", 8192, (void*) displayQueue, 10, &display_task_handle);
+    //xTaskCreate(buttonOneInterruptTask, "buttonOneIntTask", 4096, sensorHandles, 10, NULL);
     //xTaskCreate(&postData, "post_data", 8192, (void*) &data, 5, NULL);
     
     xTimerStart(light_poll, pdMS_TO_TICKS(500));

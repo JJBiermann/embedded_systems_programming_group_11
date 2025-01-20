@@ -1,0 +1,16 @@
+{
+    "C_Cpp.intelliSenseEngine": "default",
+    "idf.espIdfPath": "/home/bihan/esp/v5.4/esp-idf",
+    "idf.openOcdConfigs": [
+        "board/esp32c3-builtin.cfg"
+    ],
+    "idf.port": "/dev/ttyUSB0",
+    "idf.toolsPath": "/home/bihan/.espressif",
+    "idf.flashType": "UART",
+    "files.associations": {
+        "stdio.h": "c",
+        "sensortool.h": "c",
+        "button.h": "c",
+        "esp_intr_alloc.h": "c"
+    }
+}

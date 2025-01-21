@@ -64,6 +64,7 @@
 
 static union SensorDataUnion data;
 static QueueHandle_t displayQueue;
+static QueueHandle_t rgbQueue;
 static QueueHandle_t buttonOneIntQueue;
 static int fastPolling = 1;
 
@@ -76,6 +77,12 @@ typedef struct {
 void setupQueues() {
     displayQueue = xQueueCreate(10, sizeof(struct Message));
     if (displayQueue == NULL) {
+        printf("Queue creation went wrong!\n");
+    } else {
+        printf("Queue creation was successful!\n");
+    }
+    rgbQueue = xQueueCreate(10, sizeof(struct Message));
+    if (rgbQueue == NULL) {
         printf("Queue creation went wrong!\n");
     } else {
         printf("Queue creation was successful!\n");
@@ -98,6 +105,9 @@ void tempHumidPollCB(TimerHandle_t xTimer) {
     msg->mode = 'A';
     msg->sensorData.air = air;
     if(xQueueSend(displayQueue, (void*) msg, (TickType_t) 1000) != pdTRUE) {
+        ESP_LOGI(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
+    }
+    if(xQueueSend(rgbQueue, (void*) msg, (TickType_t) 1000) != pdTRUE) {
         ESP_LOGI(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
     }
 }
@@ -173,6 +183,9 @@ void display() {
     }
 }
 
+
+
+
 void app_main(void)
 {
     //Initialize common I2C port for display, soil sensor, and temperature/humidity sensor
@@ -198,6 +211,7 @@ void app_main(void)
 
     TimerHandle_t light_poll, temp_humid_poll, soil_poll;
     TaskHandle_t display_task_handle = NULL;
+    TaskHandle_t rgb_task_handle = NULL;
 
     light_poll      = xTimerCreate("light_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, lightPollCB);
     temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(5000), pdTRUE, (void *)0, tempHumidPollCB);
@@ -211,6 +225,7 @@ void app_main(void)
     setupInterruptButton((void*) handles);
 
     xTaskCreate(update_display, "display", 8192, (void*) displayQueue, 10, &display_task_handle);
+    xTaskCreate(update_rgbled, "rgbled", 8192, (void*) rgbQueue, 9, &rgb_task_handle);
     //xTaskCreate(buttonOneInterruptTask, "buttonOneIntTask", 4096, sensorHandles, 10, NULL);
     //xTaskCreate(&postData, "post_data", 8192, (void*) &data, 5, NULL);
     

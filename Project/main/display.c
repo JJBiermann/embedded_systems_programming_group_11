@@ -23,14 +23,14 @@ void setup_display(void) {
 
 void update_display(void* pvParameters) {
         
-        QueueHandle_t displayQueue = (QueueHandle_t) pvParameters;
-        struct Message msg;
+    QueueHandle_t displayQueue = (QueueHandle_t) pvParameters;
+    struct Message msg;
 
-        char temperature_str[17];
-        char humidity_str[17];
-        char light_str[17];
-        char soil_temp_str[17];
-        char soil_moist_str[17];
+    char temperature_str[17];
+    char humidity_str[17];
+    char light_str[17];
+    char soil_temp_str[17];
+    char soil_moist_str[17];
 
     while(1) {
         if(xQueueReceive(displayQueue, &msg, (TickType_t) 1000) == pdTRUE) {
@@ -43,7 +43,7 @@ void update_display(void* pvParameters) {
                 case 'A':
                     if (msg.sensorData.air.valid) {
                         snprintf(temperature_str,sizeof(temperature_str), "%-8s  %4.2fC", "Air:",msg.sensorData.air.temp);
-                        snprintf(humidity_str,sizeof(humidity_str), "%-8s  %4.2fC", "Humid.:", msg.sensorData.air.humid);
+                        snprintf(humidity_str,sizeof(humidity_str), "%-8s  %4.2f%%", "Humid.:", msg.sensorData.air.humid);
                     } else {
                         snprintf(temperature_str,sizeof(temperature_str), "%-8s  NA", "Air:");
                         snprintf(humidity_str,sizeof(humidity_str), "%-8s  NA", "Humid.:");

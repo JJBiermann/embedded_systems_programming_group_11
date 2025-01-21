@@ -1,5 +1,5 @@
 #include "RGBTool.h"
-
+#include "SensorTool.h"
 
 void setupLED() {
     ledc_timer_config_t ledc_timer = {
@@ -63,5 +63,24 @@ void setRGB(struct RGB rgb) {
 }
 
 
+void update_rgbled(void* pvParameters) {
+    QueueHandle_t rgbQueue = (QueueHandle_t) pvParameters;
+    struct Message msg;
+    while(1) {
+        if(xQueueReceive(rgbQueue, &msg, (TickType_t) 1000) == pdTRUE) {
+            assert(msg.mode == 'A');
+            if (msg.sensorData.air.valid) {
+                if (15 <= msg.sensorData.air.temp && msg.sensorData.air.temp <= 25) {
+                    setRGB(RGB_GREEN);
+                } else if ((10 <= msg.sensorData.air.temp && msg.sensorData.air.temp < 15) || (25 < msg.sensorData.air.temp && msg.sensorData.air.temp <= 30)) {
+                    setRGB(RGB_YELLOW);
+                } else {
+                    setRGB(RGB_RED);
+                }
+            } else {
+                setRGB(RGB_LIGHT_BLUE);
+            }   
+        } 
+    }
 
-
+}

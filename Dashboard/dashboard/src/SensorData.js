@@ -16,12 +16,14 @@ const SensorData = () => {
         const fetchData = async () => {
             try {
                 const response = await axios.get('http://172.20.10.2:5000/data');
+
+
                 setData(prevData => ({
-                    air_temp: [...prevData.air_temp, response.data.air_temp],
-                    air_humid: [...prevData.air_humid, response.data.air_humid],
-                    soil_temp: [...prevData.soil_temp, response.data.soil_temp],
-                    soil_moist: [...prevData.soil_moist, response.data.soil_moist],
-                    light: [...prevData.light, response.data.light]
+                    air_temp: response.data.air_temp ? [...prevData.air_temp, response.data.air_temp] : prevData.air_temp,
+                    air_humid: response.data.air_humid ? [...prevData.air_humid, response.data.air_humid] : prevData.air_humid,
+                    soil_temp: response.data.soil_temp ? [...prevData.soil_temp, response.data.soil_temp] : prevData.soil_temp,
+                    soil_moist: response.data.soil_moist ? [...prevData.soil_moist, response.data.soil_moist] : prevData.soil_moist,
+                    light: response.data.light ? [...prevData.light, response.data.light] : prevData.light,
                 }));
 
             } catch (error) {
@@ -35,6 +37,8 @@ const SensorData = () => {
         return () => clearInterval(interval);  
     }, []);
     
+
+
     return (
         <div className="content-container">
             <div className="header-container">
@@ -46,31 +50,31 @@ const SensorData = () => {
                     <div className="data-wrapper">
                         <div className="data-icon-container"><AirIcon fontSize="large" /></div>
                         <p>
-                            Air Temp.: {Math.round(data.air_temp.at(-1) * 10) / 10} °C
+                            Air Temp.: {(data.air_temp ? Math.round(data.air_temp.at(-1) * 10) : 0) / 10} °C
                         </p>
                     </div>
                     <div className="data-wrapper">
                         <div className="data-icon-container"><GrassIcon fontSize="large" /></div>
                         <p>
-                            Air Humidity: {Math.round(data.air_humid.at(-1) * 10) / 10}
+                            Air Humidity: {(data.air_humid?.length > 0 ? Math.round(data.air_humid.at(-1) * 10) : 0) / 10}
                         </p>
                     </div>
                     <div className="data-wrapper">
                         <div className="data-icon-container"><WaterDropIcon fontSize="large"/></div>
                         <p>
-                            Soil Temp.: {Math.round(data.soil_temp.at(-1) * 10) / 10} °C
+                            Soil Temp.: {(data.soil_temp?.length > 0 ? Math.round(data.soil_temp.at(-1) * 10) : 0) / 10} °C
                         </p>
                     </div>
                     <div className="data-wrapper">
                         <div className="data-icon-container"><GrainIcon fontSize="large" /></div>
                         <p>
-                            Soil Moisture: {Math.round(data.soil_moist.at(-1) * 10) / 10}
+                            Soil Moisture: {(data.soil_moist?.length > 0 ? Math.round(data.soil_moist.at(-1) * 10) : 0) / 10}
                         </p>
                     </div>
                     <div className="data-wrapper">
                         <div className="data-icon-container"><LightModeIcon fontSize="large" /></div>
                         <p>
-                            Light: {Math.round(data.light.at(-1) * 10) / 10}
+                            Light: {(data.soil_moist?.length > 0 ? Math.round(data.light.at(-1) * 10) : 0) / 10}
                         </p>
                     </div>
                 </div>

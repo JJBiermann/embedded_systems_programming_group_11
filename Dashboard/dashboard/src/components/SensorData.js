@@ -89,24 +89,28 @@ const SensorData = () => {
                         { data: data.soil_temp, label: 'Soil Temperature', showMark: false, xAxis: data.timestamps }
                     ]}
                     colors={['#7dabfa', '#faad7d']}
+                    yAxis={[{min: -10}]}
                 />
                 <CustomLineChart
                     series={[
                         { data: data.light, label: 'Light', showMark: false, xAxis: data.timestamps },
                     ]}
                     colors={['#fae67d']}
+                    yAxis={[{min: 0}]}
                 />
                 <CustomLineChart
                     series={[
                         { data: data.air_humid, label: 'Air Humidity', showMark: false, xAxis: data.timestamps },
                     ]}
                     colors={['#7dabfa']}
+                    yAxis={[{min: 0}]}
                 />
                 <CustomLineChart
                     series={[
                         { data: data.soil_moist, label: 'Soil Moisture', showMark: false, xAxis: data.timestamps },
                     ]}
                     colors={['#faad7d']}
+                    yAxis={[{min: 0}]}
                 />
             </div>            
             

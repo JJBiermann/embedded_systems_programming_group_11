@@ -2,7 +2,7 @@ import React from 'react';
 import { LineChart } from '@mui/x-charts/LineChart';
 import { axisClasses } from '@mui/x-charts/ChartsAxis';
 
-const CustomLineChart = ({ series, colors }) => {
+const CustomLineChart = ({ series, colors, yAxis }) => {
     const xAxisData = series[0]?.data.map((_, index) => index) || [];
     return (
         <LineChart
@@ -32,7 +32,9 @@ const CustomLineChart = ({ series, colors }) => {
             xAxis={[{
                 data: xAxisData,
                 disableTicks: false,
+                min: 0,
             }]}
+            yAxis={yAxis}
         />
     );
 };

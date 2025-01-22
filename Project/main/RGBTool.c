@@ -86,7 +86,7 @@ void update_rgbled(void* pvParameters) {
         } else {
             ESP_LOGW("RGB", "RGB queue empty.");
         }
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        vTaskDelay(pdMS_TO_TICKS(3000));
     }
 
 }

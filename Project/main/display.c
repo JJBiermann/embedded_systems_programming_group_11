@@ -74,6 +74,6 @@ void update_display(void* pvParameters) {
         } else {
             ESP_LOGW("Display", "Display queue empty.");
         }
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        vTaskDelay(pdMS_TO_TICKS(3000));
     }
 }

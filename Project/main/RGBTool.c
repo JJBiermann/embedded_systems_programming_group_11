@@ -67,7 +67,6 @@ void update_rgbled(void* pvParameters) {
     QueueHandle_t rgbQueue = (QueueHandle_t) pvParameters;
     struct Message* msg;
     while(1) {
-        printf("test\n");
         if(xQueueReceive(rgbQueue, &msg, (TickType_t) 0) == pdTRUE) {
             if (msg->mode != 'A') {
                 ESP_LOGE("ERR", "DID NOT WORK");
@@ -87,7 +86,7 @@ void update_rgbled(void* pvParameters) {
         } else {
             ESP_LOGW("RGB", "RGB queue empty.");
         }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(2000));
     }
 
 }

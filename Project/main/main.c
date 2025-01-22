@@ -85,12 +85,12 @@ void setupQueues() {
     } else {
         printf("Queue creation was successful!\n");
     }
-    // rgbQueue = xQueueCreate(20, sizeof(struct Message*));
-    // if (rgbQueue == NULL) {
-    //     printf("Queue creation went wrong!\n");
-    // } else {
-    //     printf("Queue creation was successful!\n");
-    // }
+    rgbQueue = xQueueCreate(20, sizeof(struct Message*));
+    if (rgbQueue == NULL) {
+        printf("Queue creation went wrong!\n");
+    } else {
+        printf("Queue creation was successful!\n");
+    }
     dashboardQueue = xQueueCreate(20, sizeof(struct Message*));
     if (dashboardQueue == NULL) {
         printf("Queue creation went wrong!\n");
@@ -101,12 +101,20 @@ void setupQueues() {
 
 void soilPollCB(TimerHandle_t xTimer) {
     struct SoilData soil = soilPoll();
-    struct Message* msg = (struct Message*) malloc(sizeof(struct Message));
-    msg->mode = 'S';
-    msg->sensorData.soil = soil;
-    // if(xQueueSend(displayQueue, (void*) &msg, (TickType_t) 0) != pdTRUE) {
-    //     ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the soil sensor!\n");
-    // }
+    struct Message* msg1 = (struct Message*) malloc(sizeof(struct Message));
+    msg1->mode = 'S';
+    msg1->sensorData.soil.temp = soil.temp;
+    msg1->sensorData.soil.moist = soil.moist;
+    if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 0) != pdTRUE) {
+        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the soil sensor1!\n");
+    }
+    struct Message* msg2 = (struct Message*) malloc(sizeof(struct Message));
+    msg2->mode = 'S';
+    msg2->sensorData.soil.temp = soil.temp;
+    msg2->sensorData.soil.moist = soil.moist;
+    if(xQueueSend(dashboardQueue, (void*) &msg2, (TickType_t) 0) != pdTRUE) {
+        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the soil sensor2!\n");
+    }
 }
 
 void tempHumidPollCB(TimerHandle_t xTimer) {
@@ -116,11 +124,11 @@ void tempHumidPollCB(TimerHandle_t xTimer) {
     msg1->sensorData.air.valid = true;
     msg1->sensorData.air.temp = air.temp;
     msg1->sensorData.air.humid = air.humid;
-    // struct Message* msg2 = (struct Message*) malloc(sizeof(struct Message));
-    // msg2->mode = 'A';
-    // msg2->sensorData.air.valid = true;
-    // msg2->sensorData.air.temp = air.temp;
-    // msg2->sensorData.air.humid = air.humid;
+    struct Message* msg2 = (struct Message*) malloc(sizeof(struct Message));
+    msg2->mode = 'A';
+    msg2->sensorData.air.valid = true;
+    msg2->sensorData.air.temp = air.temp;
+    msg2->sensorData.air.humid = air.humid;
     struct Message* msg3 = (struct Message*) malloc(sizeof(struct Message));
     msg3->mode = 'A';
     msg3->sensorData.air.valid = true;
@@ -128,11 +136,11 @@ void tempHumidPollCB(TimerHandle_t xTimer) {
     msg3->sensorData.air.humid = air.humid;
 
     if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 0) != pdTRUE) {
-        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor1!\n");
+        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
     }
-    // if(xQueueSend(rgbQueue, (void*) &msg2, (TickType_t) 0) != pdTRUE) {
-    //     ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor2!\n");
-    // }
+    if(xQueueSend(rgbQueue, (void*) &msg2, (TickType_t) 0) != pdTRUE) {
+        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
+    }
     if(xQueueSend(dashboardQueue, (void*) &msg3, (TickType_t) 0) != pdTRUE) {
         ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
     }
@@ -140,12 +148,18 @@ void tempHumidPollCB(TimerHandle_t xTimer) {
 
 void lightPollCB(TimerHandle_t xTimer) {
     int light = lightPoll();
-    struct Message* msg = (struct Message*) malloc(sizeof(struct Message));
-    msg->mode = 'L';
-    msg->sensorData.light = light;
-    // if(xQueueSend(displayQueue, (void*) &msg, (TickType_t) 0) != pdTRUE) {
-    //     ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the light sensor!\n");
-    // }
+    struct Message* msg1 = (struct Message*) malloc(sizeof(struct Message));
+    msg1->mode = 'L';
+    msg1->sensorData.light = light;
+    if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 0) != pdTRUE) {
+        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the light sensor!\n");
+    }
+    struct Message* msg2 = (struct Message*) malloc(sizeof(struct Message));
+    msg2->mode = 'L';
+    msg2->sensorData.light = light;
+    if(xQueueSend(dashboardQueue, (void*) &msg2, (TickType_t) 0) != pdTRUE) {
+        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the light sensor!\n");
+    }
 }
 
 void IRAM_ATTR buttonOneInterruptHandler(void* args) {
@@ -182,36 +196,6 @@ void setupInterruptButton(TimerHandles* args) {
     gpio_isr_handler_add(BTN_1_GPIO_PIN, &buttonOneInterruptHandler, args);
 }
 
-// TODO: This should be removed. Just keep the setRGB part
-void display() {
-    printf("Light: %d, ", data.light);
-    if (data.soil.valid) {
-        printf("Soil Moisture: %d, Soil Temp.: %.1f, ", data.soil.moist, data.soil.temp);
-    } else {
-        printf("Soil Moisture: NA, Soil Temp.: NA, ");
-    }
-    if (data.air.valid) {
-        printf("Air Temp.: %.1f, Air Humidity: %.1f\n", data.air.temp, data.air.humid);
-    } else {
-        printf("Air Temp.: NA, Air Humidity: NA\n");
-    }
-    
-    if (data.air.valid) {
-        if (15 <= data.air.temp && data.air.temp <= 25) {
-            setRGB(RGB_GREEN);
-        } else if ((10 <= data.air.temp && data.air.temp < 15) || (25 < data.air.temp && data.air.temp <= 30)) {
-            setRGB(RGB_YELLOW);
-        } else {
-            setRGB(RGB_RED);
-        }
-    } else {
-        setRGB(RGB_LIGHT_BLUE);
-    }
-}
-
-
-
-
 void app_main(void)
 {
     //Initialize common I2C port for display, soil sensor, and temperature/humidity sensor
@@ -236,7 +220,7 @@ void app_main(void)
 
     setupQueues();
     setupSensors();
-    // setupLED();
+    setupLED();
     setup_display();
     setupWifi();
 
@@ -245,9 +229,9 @@ void app_main(void)
     TaskHandle_t rgb_task_handle = NULL;
     TaskHandle_t dashboard_task_handle = NULL;
 
-    light_poll      = xTimerCreate("light_poll", pdMS_TO_TICKS(2000), pdTRUE, (void *)0, lightPollCB);
-    temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(2000), pdTRUE, (void *)0, tempHumidPollCB);
-    soil_poll       = xTimerCreate("soil_poll", pdMS_TO_TICKS(2000), pdTRUE, (void *)0, soilPollCB);
+    light_poll      = xTimerCreate("light_poll", pdMS_TO_TICKS(8000), pdTRUE, (void *)0, lightPollCB);
+    temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(8000), pdTRUE, (void *)0, tempHumidPollCB);
+    soil_poll       = xTimerCreate("soil_poll", pdMS_TO_TICKS(8000), pdTRUE, (void *)0, soilPollCB);
 
     TimerHandles* handles = (TimerHandles*) malloc(sizeof(TimerHandles));
     handles->light = light_poll; 
@@ -260,7 +244,7 @@ void app_main(void)
 
     
     xTaskCreate(update_display, "display", 8192 * 2, (void*) displayQueue, 2, NULL);
-    // xTaskCreate(update_rgbled, "rgbled", 8192 * 2, (void*) rgbQueue, 1, NULL);
+    xTaskCreate(update_rgbled, "rgbled", 8192 * 2, (void*) rgbQueue, 1, NULL);
     xTaskCreate(post_data, "post_data", 8192 * 2, (void*) dashboardQueue, 3, NULL);
 
     xTimerStart(light_poll, pdMS_TO_TICKS(500));

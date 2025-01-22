@@ -197,7 +197,7 @@ void post_data(void *pvParameters) {
         } else {
             ESP_LOGW("Wifi", "Wifi queue empty.");
         }
-        vTaskDelay(pdMS_TO_TICKS(1000));
+        vTaskDelay(pdMS_TO_TICKS(2000));
     }
     esp_http_client_cleanup(client);
 }

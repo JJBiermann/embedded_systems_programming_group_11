@@ -1,3 +1,5 @@
+#ifndef RGB_TOOL
+#define RGB_TOOL
 
 #include "driver/ledc.h"
 
@@ -35,3 +37,4 @@ void setRGB(struct RGB);
 void update_rgbled(void* pvParameters);
 
 
+#endif

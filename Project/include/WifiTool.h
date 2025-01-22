@@ -1,5 +1,9 @@
+#ifndef WIFI_TOOL
+#define WIFI_TOOL
+
 #include <stdint.h>
 #include "esp_event.h"
+#include "TaskSetup.h"
 
 #define WIFI_SSID "Magnus"
 #define WIFI_PASS "magnus123"
@@ -18,3 +22,5 @@ extern const uint8_t client_cert_pem_start[] asm("_binary_client_cert_pem_start"
 extern const uint8_t client_cert_pem_end[] asm("_binary_client_cert_pem_end");
 extern const uint8_t client_key_pem_start[] asm("_binary_client_key_pem_start");
 extern const uint8_t client_key_pem_end[] asm("_binary_client_key_pem_end");
+
+#endif

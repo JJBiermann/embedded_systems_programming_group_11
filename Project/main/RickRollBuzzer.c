@@ -119,13 +119,6 @@ void setupBuzzer()
         .hpoint         = 0
     };
     ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel_buzz));
-
-    // Set duty
-    ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 4096)); //50% duty
-    // Update duty to apply the new value
-    ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL));
-
- // threshold = analogRead(sensor) + 250;
 }
 
 void play(int notes[], int durations[], int notesSize, int durationsSize) {

@@ -24,6 +24,7 @@ void setup_display(void) {
 void update_display(void* pvParameters) {
         
     QueueHandle_t displayQueue = (QueueHandle_t) pvParameters;
+
     struct Message* msg;
 
     char temperature_str[17];
@@ -33,7 +34,7 @@ void update_display(void* pvParameters) {
     char soil_moist_str[17];
 
     while(1) {
-        if(xQueueReceive(displayQueue, &msg, (TickType_t) 1000) == pdTRUE) {
+        if(xQueueReceive(displayQueue, &msg, (TickType_t) 0) == pdTRUE) {
             switch (msg->mode) {
                 case 'L':
                     snprintf(light_str,sizeof(light_str), "%-10s %4dI", "light:", msg->sensorData.light);
@@ -70,6 +71,9 @@ void update_display(void* pvParameters) {
                     break;
             }
             free(msg);
-        } 
+        } else {
+            ESP_LOGW("Display", "Display queue empty.");
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000));
     }
 }

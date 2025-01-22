@@ -11,7 +11,7 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 
 
 const SensorData = () => {
-    const [data, setData] = useState({air_temp: [], air_humid: [], soil_temp: [], soil_moist: [], light: [] });
+    const [data, setData] = useState({air_temp: [0], air_humid: [0], soil_temp: [0], soil_moist: [0], light: [0] });
     useEffect(() => {
         const fetchData = async () => {
             try {

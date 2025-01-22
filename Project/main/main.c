@@ -45,6 +45,7 @@
 #include "esp_intr_alloc.h"
 #include "esp_timer.h"
 #include "hal/wdt_hal.h"
+#include "esp_task_wdt.h"
 
 #define I2C_NUM    0
 #define SDA_PIN    2
@@ -78,19 +79,19 @@ typedef struct {
 } TimerHandles;
 
 void setupQueues() {
-    displayQueue = xQueueCreate(5, sizeof(struct Message*));
+    displayQueue = xQueueCreate(20, sizeof(struct Message*));
     if (displayQueue == NULL) {
         printf("Queue creation went wrong!\n");
     } else {
         printf("Queue creation was successful!\n");
     }
-    rgbQueue = xQueueCreate(5, sizeof(struct Message*));
-    if (rgbQueue == NULL) {
-        printf("Queue creation went wrong!\n");
-    } else {
-        printf("Queue creation was successful!\n");
-    }
-    dashboardQueue = xQueueCreate(5, sizeof(struct Message*));
+    // rgbQueue = xQueueCreate(20, sizeof(struct Message*));
+    // if (rgbQueue == NULL) {
+    //     printf("Queue creation went wrong!\n");
+    // } else {
+    //     printf("Queue creation was successful!\n");
+    // }
+    dashboardQueue = xQueueCreate(20, sizeof(struct Message*));
     if (dashboardQueue == NULL) {
         printf("Queue creation went wrong!\n");
     } else {
@@ -103,9 +104,9 @@ void soilPollCB(TimerHandle_t xTimer) {
     struct Message* msg = (struct Message*) malloc(sizeof(struct Message));
     msg->mode = 'S';
     msg->sensorData.soil = soil;
-    if(xQueueSend(displayQueue, (void*) &msg, (TickType_t) 1000) != pdTRUE) {
-        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the soil sensor!\n");
-    }
+    // if(xQueueSend(displayQueue, (void*) &msg, (TickType_t) 0) != pdTRUE) {
+    //     ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the soil sensor!\n");
+    // }
 }
 
 void tempHumidPollCB(TimerHandle_t xTimer) {
@@ -115,23 +116,26 @@ void tempHumidPollCB(TimerHandle_t xTimer) {
     msg1->sensorData.air.valid = true;
     msg1->sensorData.air.temp = air.temp;
     msg1->sensorData.air.humid = air.humid;
-    struct Message* msg2 = (struct Message*) malloc(sizeof(struct Message));
-    msg2->mode = 'A';
-    msg2->sensorData.air.valid = true;
-    msg2->sensorData.air.temp = air.temp;
-    msg2->sensorData.air.humid = air.humid;
-    // struct Message* msg3 = (struct Message*) malloc(sizeof(struct Message));
-    // msg3->mode = 'A';
-    // msg3->sensorData.air = air;
-    if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 200) != pdTRUE) {
+    // struct Message* msg2 = (struct Message*) malloc(sizeof(struct Message));
+    // msg2->mode = 'A';
+    // msg2->sensorData.air.valid = true;
+    // msg2->sensorData.air.temp = air.temp;
+    // msg2->sensorData.air.humid = air.humid;
+    struct Message* msg3 = (struct Message*) malloc(sizeof(struct Message));
+    msg3->mode = 'A';
+    msg3->sensorData.air.valid = true;
+    msg3->sensorData.air.temp = air.temp;
+    msg3->sensorData.air.humid = air.humid;
+
+    if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 0) != pdTRUE) {
         ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor1!\n");
     }
-    if(xQueueSend(rgbQueue, (void*) &msg2, (TickType_t) 200) != pdTRUE) {
-        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor2!\n");
-    }
-    // if(xQueueSend(dashboardQueue, (void*) &msg3, (TickType_t) 1000) != pdTRUE) {
-    //     ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
+    // if(xQueueSend(rgbQueue, (void*) &msg2, (TickType_t) 0) != pdTRUE) {
+    //     ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor2!\n");
     // }
+    if(xQueueSend(dashboardQueue, (void*) &msg3, (TickType_t) 0) != pdTRUE) {
+        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
+    }
 }
 
 void lightPollCB(TimerHandle_t xTimer) {
@@ -139,9 +143,9 @@ void lightPollCB(TimerHandle_t xTimer) {
     struct Message* msg = (struct Message*) malloc(sizeof(struct Message));
     msg->mode = 'L';
     msg->sensorData.light = light;
-    if(xQueueSend(displayQueue, (void*) &msg, (TickType_t) 1000) != pdTRUE) {
-        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the light sensor!\n");
-    }
+    // if(xQueueSend(displayQueue, (void*) &msg, (TickType_t) 0) != pdTRUE) {
+    //     ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the light sensor!\n");
+    // }
 }
 
 void IRAM_ATTR buttonOneInterruptHandler(void* args) {
@@ -226,15 +230,15 @@ void app_main(void)
     ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0));
 
 
-    wdt_hal_context_t wdt_context;
-    wdt_hal_init(&wdt_context, WDT_MWDT0, 0, false);
-    wdt_hal_disable(&wdt_context);
+    // wdt_hal_context_t wdt_context;
+    // wdt_hal_init(&wdt_context, WDT_MWDT0, 0, false);
+    // wdt_hal_disable(&wdt_context);
 
     setupQueues();
     setupSensors();
-    setupLED();
+    // setupLED();
     setup_display();
-    // setupWifi();
+    setupWifi();
 
     TimerHandle_t light_poll, temp_humid_poll, soil_poll;
     TaskHandle_t display_task_handle = NULL;
@@ -250,16 +254,23 @@ void app_main(void)
     handles->soil = soil_poll;
     handles->air = temp_humid_poll;
 
-    setupInterruptButton((void*) handles);
+    // setupInterruptButton((void*) handles);
 
-    // vTaskDelay(pdMS_TO_TICKS(15000));
+    vTaskDelay(pdMS_TO_TICKS(20000));
 
-    xTaskCreate(update_display, "display", 8192, (void*) displayQueue, 10, &display_task_handle);
-    xTaskCreate(update_rgbled, "rgbled", 8192, (void*) rgbQueue, 9, &rgb_task_handle);
-    //xTaskCreate(buttonOneInterruptTask, "buttonOneIntTask", 4096, sensorHandles, 10, NULL);
-    // xTaskCreate(post_data, "post_data", 8192, (void*) dashboardQueue, 5, &dashboard_task_handle);
     
+    xTaskCreate(update_display, "display", 8192 * 2, (void*) displayQueue, 2, NULL);
+    // xTaskCreate(update_rgbled, "rgbled", 8192 * 2, (void*) rgbQueue, 1, NULL);
+    xTaskCreate(post_data, "post_data", 8192 * 2, (void*) dashboardQueue, 3, NULL);
+
     xTimerStart(light_poll, pdMS_TO_TICKS(500));
+    vTaskDelay(pdMS_TO_TICKS(600));
     xTimerStart(temp_humid_poll, pdMS_TO_TICKS(500));
+    vTaskDelay(pdMS_TO_TICKS(600));
     xTimerStart(soil_poll, pdMS_TO_TICKS(500));
+
+    while(1) {
+        vTaskDelay(10);
+        //esp_task_wdt_reset();
+    }
 }

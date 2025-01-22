@@ -3,9 +3,6 @@
 cmake_minimum_required(VERSION 3.16)
 
 
-
-
-
 set(EXTRA_COMPONENT_DIRS
     ./components/am2320
     ./components/ssd1306

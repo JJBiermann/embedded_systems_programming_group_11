@@ -79,18 +79,18 @@ typedef struct {
 } TimerHandles;
 
 void setupQueues() {
-    displayQueue = xQueueCreate(20, sizeof(struct Message*));
-    if (displayQueue == NULL) {
-        printf("Queue creation went wrong!\n");
-    } else {
-        printf("Queue creation was successful!\n");
-    }
-    rgbQueue = xQueueCreate(20, sizeof(struct Message*));
-    if (rgbQueue == NULL) {
-        printf("Queue creation went wrong!\n");
-    } else {
-        printf("Queue creation was successful!\n");
-    }
+    // displayQueue = xQueueCreate(20, sizeof(struct Message*));
+    // if (displayQueue == NULL) {
+    //     printf("Queue creation went wrong!\n");
+    // } else {
+    //     printf("Queue creation was successful!\n");
+    // }
+    // rgbQueue = xQueueCreate(20, sizeof(struct Message*));
+    // if (rgbQueue == NULL) {
+    //     printf("Queue creation went wrong!\n");
+    // } else {
+    //     printf("Queue creation was successful!\n");
+    // }
     dashboardQueue = xQueueCreate(20, sizeof(struct Message*));
     if (dashboardQueue == NULL) {
         printf("Queue creation went wrong!\n");
@@ -101,13 +101,13 @@ void setupQueues() {
 
 void soilPollCB(TimerHandle_t xTimer) {
     struct SoilData soil = soilPoll();
-    struct Message* msg1 = (struct Message*) malloc(sizeof(struct Message));
-    msg1->mode = 'S';
-    msg1->sensorData.soil.temp = soil.temp;
-    msg1->sensorData.soil.moist = soil.moist;
-    if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 0) != pdTRUE) {
-        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the soil sensor1!\n");
-    }
+    // struct Message* msg1 = (struct Message*) malloc(sizeof(struct Message));
+    // msg1->mode = 'S';
+    // msg1->sensorData.soil.temp = soil.temp;
+    // msg1->sensorData.soil.moist = soil.moist;
+    // if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 0) != pdTRUE) {
+    //     ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the soil sensor1!\n");
+    // }
     struct Message* msg2 = (struct Message*) malloc(sizeof(struct Message));
     msg2->mode = 'S';
     msg2->sensorData.soil.temp = soil.temp;
@@ -119,28 +119,28 @@ void soilPollCB(TimerHandle_t xTimer) {
 
 void tempHumidPollCB(TimerHandle_t xTimer) {
     struct AirData air = tempHumidPoll();
-    struct Message* msg1 = (struct Message*) malloc(sizeof(struct Message));
-    msg1->mode = 'A';
-    msg1->sensorData.air.valid = true;
-    msg1->sensorData.air.temp = air.temp;
-    msg1->sensorData.air.humid = air.humid;
-    struct Message* msg2 = (struct Message*) malloc(sizeof(struct Message));
-    msg2->mode = 'A';
-    msg2->sensorData.air.valid = true;
-    msg2->sensorData.air.temp = air.temp;
-    msg2->sensorData.air.humid = air.humid;
+    // struct Message* msg1 = (struct Message*) malloc(sizeof(struct Message));
+    // msg1->mode = 'A';
+    // msg1->sensorData.air.valid = true;
+    // msg1->sensorData.air.temp = air.temp;
+    // msg1->sensorData.air.humid = air.humid;
+    // struct Message* msg2 = (struct Message*) malloc(sizeof(struct Message));
+    // msg2->mode = 'A';
+    // msg2->sensorData.air.valid = true;
+    // msg2->sensorData.air.temp = air.temp;
+    // msg2->sensorData.air.humid = air.humid;
     struct Message* msg3 = (struct Message*) malloc(sizeof(struct Message));
     msg3->mode = 'A';
     msg3->sensorData.air.valid = true;
     msg3->sensorData.air.temp = air.temp;
     msg3->sensorData.air.humid = air.humid;
 
-    if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 0) != pdTRUE) {
-        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
-    }
-    if(xQueueSend(rgbQueue, (void*) &msg2, (TickType_t) 0) != pdTRUE) {
-        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
-    }
+    // if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 0) != pdTRUE) {
+    //     ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
+    // }
+    // if(xQueueSend(rgbQueue, (void*) &msg2, (TickType_t) 0) != pdTRUE) {
+    //     ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
+    // }
     if(xQueueSend(dashboardQueue, (void*) &msg3, (TickType_t) 0) != pdTRUE) {
         ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
     }
@@ -148,12 +148,12 @@ void tempHumidPollCB(TimerHandle_t xTimer) {
 
 void lightPollCB(TimerHandle_t xTimer) {
     int light = lightPoll();
-    struct Message* msg1 = (struct Message*) malloc(sizeof(struct Message));
-    msg1->mode = 'L';
-    msg1->sensorData.light = light;
-    if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 0) != pdTRUE) {
-        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the light sensor!\n");
-    }
+    // struct Message* msg1 = (struct Message*) malloc(sizeof(struct Message));
+    // msg1->mode = 'L';
+    // msg1->sensorData.light = light;
+    // if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 0) != pdTRUE) {
+    //     ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the light sensor!\n");
+    // }
     struct Message* msg2 = (struct Message*) malloc(sizeof(struct Message));
     msg2->mode = 'L';
     msg2->sensorData.light = light;
@@ -220,8 +220,8 @@ void app_main(void)
 
     setupQueues();
     setupSensors();
-    setupLED();
-    setup_display();
+    // setupLED();
+    // setup_display();
     setupWifi();
 
     TimerHandle_t light_poll, temp_humid_poll, soil_poll;
@@ -243,8 +243,8 @@ void app_main(void)
     vTaskDelay(pdMS_TO_TICKS(20000));
 
     
-    xTaskCreate(update_display, "display", 8192 * 2, (void*) displayQueue, 2, NULL);
-    xTaskCreate(update_rgbled, "rgbled", 8192 * 2, (void*) rgbQueue, 1, NULL);
+    // xTaskCreate(update_display, "display", 8192 * 2, (void*) displayQueue, 2, NULL);
+    // xTaskCreate(update_rgbled, "rgbled", 8192 * 2, (void*) rgbQueue, 1, NULL);
     xTaskCreate(post_data, "post_data", 8192 * 2, (void*) dashboardQueue, 3, NULL);
 
     xTimerStart(light_poll, pdMS_TO_TICKS(500));

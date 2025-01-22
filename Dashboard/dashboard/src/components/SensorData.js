@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
 import CustomLineChart from './CustomLineChart';
+import ExportButton from './ExportButton';
 
 import AirIcon from '@mui/icons-material/Air';
 import GrassIcon from '@mui/icons-material/Grass';
@@ -11,7 +12,7 @@ import LightModeIcon from '@mui/icons-material/LightMode';
 
 
 const SensorData = () => {
-    const [data, setData] = useState({air_temp: [0], air_humid: [0], soil_temp: [0], soil_moist: [0], light: [0] });
+    const [data, setData] = useState({air_temp: [], air_humid: [], soil_temp: [], soil_moist: [], light: [] });
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -48,6 +49,7 @@ const SensorData = () => {
             <div className="data-container">
                 <div className='data-container-inner'>
                     <div className="data-wrapper">
+                        
                         <div className="data-icon-container"><AirIcon fontSize="large" /></div>
                         <p>
                             Air Temp.: {(data.air_temp ? Math.round(data.air_temp.at(-1) * 10) : 0) / 10} °C
@@ -83,32 +85,32 @@ const SensorData = () => {
             <div className="chart-container">
                 <CustomLineChart
                     series={[
-                        { data: data.air_temp, label: 'Air Temperature', showMark: false },
-                        { data: data.soil_temp, label: 'Soil Temperature', showMark: false }
+                        { data: data.air_temp, label: 'Air Temperature', showMark: false, xAxis: data.timestamps },
+                        { data: data.soil_temp, label: 'Soil Temperature', showMark: false, xAxis: data.timestamps }
                     ]}
                     colors={['#7dabfa', '#faad7d']}
                 />
                 <CustomLineChart
                     series={[
-                        { data: data.light, label: 'Light', showMark: false },
+                        { data: data.light, label: 'Light', showMark: false, xAxis: data.timestamps },
                     ]}
                     colors={['#fae67d']}
                 />
                 <CustomLineChart
                     series={[
-                        { data: data.air_humid, label: 'Air Humidity', showMark: false },
+                        { data: data.air_humid, label: 'Air Humidity', showMark: false, xAxis: data.timestamps },
                     ]}
                     colors={['#7dabfa']}
                 />
                 <CustomLineChart
                     series={[
-                        { data: data.soil_moist, label: 'Soil Moisture', showMark: false },
+                        { data: data.soil_moist, label: 'Soil Moisture', showMark: false, xAxis: data.timestamps },
                     ]}
                     colors={['#faad7d']}
                 />
             </div>            
             
-            
+            <div><ExportButton data={data}/></div>
 
         </div>
     );

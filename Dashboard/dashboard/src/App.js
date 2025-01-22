@@ -1,7 +1,7 @@
 // filepath: /path/to/your/project/sensor-data-app/src/App.js
 import React from 'react';
 import './App.css';
-import SensorData from './SensorData';
+import SensorData from './components/SensorData';
 
 function App() {
     return (

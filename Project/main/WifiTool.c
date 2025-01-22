@@ -120,6 +120,7 @@ static void wifi_event_handler(void *arg, esp_event_base_t event_base, int32_t e
         ip_event_got_ip_t *event = (ip_event_got_ip_t *)event_data;
         ESP_LOGI(TAG, "Connected! Got IP: " IPSTR, IP2STR(&event->ip_info.ip));
         setupQueuesAndTasks();
+        vTaskDelay(pdMS_TO_TICKS(3000));
         xTaskCreate(post_data, "post_data", 8192 * 2, (void*) dashboardQueue, 3, NULL);
     }
 }

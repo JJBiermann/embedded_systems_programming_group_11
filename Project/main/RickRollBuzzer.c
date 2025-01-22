@@ -149,7 +149,5 @@ void play(int notes[], int durations[], int notesSize, int durationsSize) {
 }
 
 void rickroll() {
-    play(song1_intro_melody, song1_intro_rhythmn, sizeof(song1_intro_melody), sizeof(song1_intro_rhythmn));
-    play(song1_verse1_melody, song1_verse1_rhythmn, sizeof(song1_verse1_melody), sizeof(song1_verse1_rhythmn));
     play(song1_chorus_melody, song1_chorus_rhythmn, sizeof(song1_chorus_melody), sizeof(song1_chorus_rhythmn));
 }

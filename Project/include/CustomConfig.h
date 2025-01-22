@@ -13,12 +13,9 @@
 
 #define ERROR_TAG "ERROR"
 
-#define BTN_1_GPIO_PIN 18
-#define BTN_2_GPIO_PIN 19
-
 // Consumers
 #define DISPLAY_ACTIVE
-// #define DASHBOARD_ACTIVE
+#define DASHBOARD_ACTIVE
 #define RGB_ACTIVE
 
 // Producers
@@ -27,9 +24,9 @@
 #define AIR_SENSOR_ACTIVE
 
 //Polling Rate
-#define STANDARD_POLLING 3000
-#define FAST_POLLING 500
-#define SLOW_POLLING 10000
+#define STANDARD_POLLING 20000
+#define FAST_POLLING 20000
+#define SLOW_POLLING 60000
 
 // sensor polling delays
 #define AIR_SENSOR_POLLING_DELAY pdMS_TO_TICKS(SLOW_POLLING)

@@ -6,14 +6,14 @@ void IRAM_ATTR buttonOneInterruptHandler(void* args) {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE; // TODO: What is this? 
     if (current_time - last_interrupt_time > 200000) {  // 200 ms debounce time
         if (fastPolling) {
-            xTimerChangePeriodFromISR(light_poll, pdMS_TO_TICKS(1000), &xHigherPriorityTaskWoken);
-            xTimerChangePeriodFromISR(temp_humid_poll, pdMS_TO_TICKS(1000), &xHigherPriorityTaskWoken);
-            xTimerChangePeriodFromISR(soil_poll, pdMS_TO_TICKS(1000), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(light_poll, pdMS_TO_TICKS(FAST_POLLING), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(temp_humid_poll, pdMS_TO_TICKS(FAST_POLLING), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(soil_poll, pdMS_TO_TICKS(FAST_POLLING), &xHigherPriorityTaskWoken);
             fastPolling = 0;
         } else {
-            xTimerChangePeriodFromISR(light_poll, pdMS_TO_TICKS(5000), &xHigherPriorityTaskWoken);
-            xTimerChangePeriodFromISR(temp_humid_poll, pdMS_TO_TICKS(5000), &xHigherPriorityTaskWoken);
-            xTimerChangePeriodFromISR(soil_poll, pdMS_TO_TICKS(5000), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(light_poll, pdMS_TO_TICKS(SLOW_POLLING), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(temp_humid_poll, pdMS_TO_TICKS(SLOW_POLLING), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(soil_poll, pdMS_TO_TICKS(SLOW_POLLING), &xHigherPriorityTaskWoken);
             fastPolling = 1;
         }
     }

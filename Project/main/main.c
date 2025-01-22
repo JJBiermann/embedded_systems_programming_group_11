@@ -168,16 +168,16 @@ void IRAM_ATTR buttonOneInterruptHandler(void* args) {
     uint32_t current_time = esp_timer_get_time();  // Get time in microseconds
     BaseType_t xHigherPriorityTaskWoken = pdFALSE; // TODO: What is this? 
     if (current_time - last_interrupt_time > 200000) {  // 200 ms debounce time
-        if (fastPolling) {
-            xTimerChangePeriodFromISR(timerHandles->light, pdMS_TO_TICKS(1000), &xHigherPriorityTaskWoken);
-            xTimerChangePeriodFromISR(timerHandles->air, pdMS_TO_TICKS(1000), &xHigherPriorityTaskWoken);
-            xTimerChangePeriodFromISR(timerHandles->soil, pdMS_TO_TICKS(1000), &xHigherPriorityTaskWoken);
-            fastPolling = 0;
-        } else {
-            xTimerChangePeriodFromISR(timerHandles->light, pdMS_TO_TICKS(5000), &xHigherPriorityTaskWoken);
-            xTimerChangePeriodFromISR(timerHandles->air, pdMS_TO_TICKS(5000), &xHigherPriorityTaskWoken);
-            xTimerChangePeriodFromISR(timerHandles->soil, pdMS_TO_TICKS(5000), &xHigherPriorityTaskWoken);
+        if (!fastPolling) {
+            xTimerChangePeriodFromISR(timerHandles->light, pdMS_TO_TICKS(20000), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(timerHandles->air, pdMS_TO_TICKS(20000), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(timerHandles->soil, pdMS_TO_TICKS(20000), &xHigherPriorityTaskWoken);
             fastPolling = 1;
+        } else {
+            xTimerChangePeriodFromISR(timerHandles->light, pdMS_TO_TICKS(60000), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(timerHandles->air, pdMS_TO_TICKS(60000), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(timerHandles->soil, pdMS_TO_TICKS(60000), &xHigherPriorityTaskWoken);
+            fastPolling = 0;
         }
     }
     last_interrupt_time = current_time;
@@ -235,7 +235,7 @@ void app_main(void)
     handles->soil = soil_poll;
     handles->air = temp_humid_poll;
 
-    // setupInterruptButton((void*) handles);
+    setupInterruptButton((void*) handles);
 
     vTaskDelay(pdMS_TO_TICKS(20000));
 

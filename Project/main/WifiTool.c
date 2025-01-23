@@ -77,9 +77,9 @@ void post_data(void *pvParameters) {
             
             char *post_data = cJSON_Print(root);
 
-            esp_http_client_set_method(client, HTTP_METHOD_POST);
-            esp_http_client_set_header(client, "Content-Type", "application/json");
-            esp_http_client_set_post_field(client, post_data, strlen(post_data));
+            ESP_ERROR_CHECK(esp_http_client_set_method(client, HTTP_METHOD_POST));
+            ESP_ERROR_CHECK(esp_http_client_set_header(client, "Content-Type", "application/json"));
+            ESP_ERROR_CHECK(esp_http_client_set_post_field(client, post_data, strlen(post_data)));
 
             ESP_LOGI(TAG, "Sending HTTP POST request to %s", SERVER_URL);
             
@@ -99,5 +99,5 @@ void post_data(void *pvParameters) {
         }
         vTaskDelay(pdMS_TO_TICKS(getPollDelay()));
     }
-    esp_http_client_cleanup(client);
+    ESP_ERROR_CHECK(esp_http_client_cleanup(client));
 }

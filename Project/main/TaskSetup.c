@@ -58,8 +58,6 @@ void soilPollCB(TimerHandle_t xTimer) {
 
 void tempHumidPollCB(TimerHandle_t xTimer) {
     struct AirData air = tempHumidPoll();
-   
-  
     #ifdef DISPLAY_ACTIVE
     struct Message* msg1 = (struct Message*) malloc(sizeof(struct Message));
     msg1->mode = 'A';
@@ -152,14 +150,6 @@ void setupRGBAndQueue() {
     xTaskCreate(update_rgbled, "rgbled", 8192 * 2, (void*) rgbQueue, 1, NULL);
 }
 
-void setupDashboardQueue() {
-    dashboardQueue = xQueueCreate(20, sizeof(struct Message*));
-    if (dashboardQueue == NULL) {
-        printf("Queue creation went wrong!\n");
-    } else {
-        printf("Queue creation was successful!\n");
-    }
-}
 
 void checkRRQueue() {
     int flag = 0;
@@ -181,9 +171,6 @@ void setupRR() {
 
 void setupQueuesAndTasks() {
     setupRR();
-    #ifdef DASHBOARD_ACTIVE
-    setupDashboardQueue();
-    #endif
     #ifdef LIGHT_SENSOR_ACTIVE
     setupLightSensorAndQueue();
     #endif

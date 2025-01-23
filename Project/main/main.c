@@ -44,6 +44,7 @@
 #include "hal/wdt_hal.h"
 #include "esp_task_wdt.h"
 
+void setupDashboardQueue();
 
 void setupInterruptButton() {
     // Set button 1 pin to interrupt on high level
@@ -58,17 +59,26 @@ void setupInterruptButton() {
 }
 
 void setupInterruptButtonTwo() {
-    // Set button 1 pin to interrupt on high level
+    // Set button 2 pin to interrupt on high level
     gpio_config_t io_conf; 
     io_conf.pin_bit_mask = (1ULL<<BTN_2_GPIO_PIN);
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
     io_conf.intr_type = GPIO_INTR_NEGEDGE;
     gpio_config(&io_conf);
-    gpio_install_isr_service(0);
+    //gpio_install_isr_service(0);
     gpio_isr_handler_add(BTN_2_GPIO_PIN, &buttonTwoInterruptHandler, (void*) 0);
 }
 
+
+void setupDashboardQueue() {
+    dashboardQueue = xQueueCreate(20, sizeof(struct Message*));
+    if (dashboardQueue == NULL) {
+        printf("Dashboard queue creation went wrong!\n");
+    } else {
+        printf("Dashboard queue creation was successful!\n");
+    }
+}
 
 void app_main(void)
 {
@@ -87,13 +97,12 @@ void app_main(void)
 
     i2c_param_config(I2C_NUM, &conf);
     ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0));
-
-    #ifdef DASHBOARD_ACTIVE
-    // This will inside of the success callback then call "setupQueuesAndTasks()"
+    setupSensors();
     setupWifi(); 
-    #else
+    vTaskDelay(pdMS_TO_TICKS(20000));
     setupQueuesAndTasks();
-    #endif
+    setupDashboardQueue();
+    xTaskCreate(post_data, "post_data", 8192 * 2, (void*) dashboardQueue, 3, NULL);
 
     setupInterruptButton();
     setupInterruptButtonTwo();

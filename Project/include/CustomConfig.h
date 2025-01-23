@@ -18,7 +18,7 @@
 
 // Consumers
 #define DISPLAY_ACTIVE
-// #define DASHBOARD_ACTIVE
+#define DASHBOARD_ACTIVE
 #define RGB_ACTIVE
 
 // Producers

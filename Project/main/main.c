@@ -253,14 +253,13 @@ void app_main(void)
     conf.clk_flags = 0;
     i2c_param_config(I2C_NUM, &conf);
     ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0));
-
+    setup_display();
 
     setPollRate(FAST_POLL_RATE);
 
     setupQueues();
     setupSensors();
     setupLED();
-    setup_display();
     setupWifi();
     setupBuzzer();
     

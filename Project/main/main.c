@@ -126,13 +126,13 @@ void setupInterruptButtons(TimerHandles* args) {
     io_conf.mode = GPIO_MODE_INPUT;
     io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
     io_conf.intr_type = GPIO_INTR_NEGEDGE;
-    gpio_config(&io_conf);
-    gpio_isr_handler_add(BTN_1_GPIO_PIN, &buttonOneInterruptHandler, args);
+    ESP_ERROR_CHECK(gpio_config(&io_conf));
+    ESP_ERROR_CHECK(gpio_isr_handler_add(BTN_1_GPIO_PIN, &buttonOneInterruptHandler, args));
 
     // Second Button
     io_conf.pin_bit_mask = (1ULL << BTN_2_GPIO_PIN);
-    gpio_config(&io_conf);
-    gpio_isr_handler_add(BTN_2_GPIO_PIN, &buttonTwoInterruptHandler, (void*) 0);
+    ESP_ERROR_CHECK(gpio_config(&io_conf));
+    ESP_ERROR_CHECK(gpio_isr_handler_add(BTN_2_GPIO_PIN, &buttonTwoInterruptHandler, (void*) 0));
 }
 
 

@@ -22,6 +22,7 @@
 #define LEDC_DUTY               (4096) // Set duty to 50%. (2 ** 13) * 50% = 4096
 #define LEDC_FREQUENCY          (1000) // Frequency in Hertz. Set frequency at 1 kHz
 
+// Note frequencies and rhythm taken from: https://www.hackster.io/slagestee/rickroll-box-3c2245 
 #define  a3f    208     // 208 Hz
 #define  b3f    233     // 233 Hz
 #define  b3     247     // 247 Hz

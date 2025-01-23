@@ -4,6 +4,7 @@
 #include "freertos/queue.h"
 
 void setup_display(void) {
+    int center, top; 
     vTaskDelay(pdMS_TO_TICKS(1000));
     i2c_master_shared_i2c_init(&oled_display);
     ssd1306_init(&oled_display, 128, 64);
@@ -68,6 +69,6 @@ void update_display(void* pvParameters) {
         } else {
             ESP_LOGW("Display", "Queue empty.");
         }
-        vTaskDelay(pdMS_TO_TICKS(getPollDelay()));
+        vTaskDelay(pdMS_TO_TICKS(POLL_DELAY));
     }
 }

@@ -9,5 +9,5 @@ int getPollRate() {
 }
 
 int getPollDelay() {
-    return pollRate / 7;
+    return POLL_DELAY;
 }

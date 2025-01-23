@@ -10,7 +10,6 @@ import WaterDropIcon from '@mui/icons-material/WaterDrop';
 import GrainIcon from '@mui/icons-material/Grain';
 import LightModeIcon from '@mui/icons-material/LightMode';
 
-
 const SensorData = () => {
     const [data, setData] = useState({air_temp: [], air_humid: [], soil_temp: [], soil_moist: [], light: [] });
     useEffect(() => {

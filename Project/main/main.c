@@ -15,6 +15,7 @@
 #include "esp_flash.h"
 #include "esp_system.h"
 #include "esp_rom_gpio.h"
+#include "esp_timer.h"
 
 #include "nvs_flash.h"
 #include "sdkconfig.h"
@@ -39,11 +40,13 @@
 #include "SensorTool.h"
 #include "RGBTool.h"
 #include "WifiTool.h"
+#include "RickRollBuzzer.h"
+#include "Config.h"
 
 #include "freertos/queue.h"
 //#include "gpio_types.h"
 #include "esp_intr_alloc.h"
-#include "esp_timer.h"
+
 #include "hal/wdt_hal.h"
 #include "esp_task_wdt.h"
 
@@ -61,16 +64,18 @@
 
 #define ERROR_TAG "ERROR"
 
-#define BTN_1_GPIO_PIN 18
-#define BTN_2_GPIO_PIN 19
 
-static union SensorDataUnion data;
+
 static QueueHandle_t displayQueue;
 static QueueHandle_t rgbQueue;
 static QueueHandle_t dashboardQueue;
-
 static QueueHandle_t buttonOneIntQueue;
+
+#define BTN_1_GPIO_PIN 18
+#define BTN_2_GPIO_PIN 19
+
 static int fastPolling = 1;
+static QueueHandle_t RRQueue;
 
 typedef struct {
     TimerHandle_t light;
@@ -78,36 +83,117 @@ typedef struct {
     TimerHandle_t soil;
 } TimerHandles;
 
+
+void IRAM_ATTR buttonOneInterruptHandler(void* args) {
+    TimerHandles* timerHandles = (TimerHandles*) args;
+    static uint32_t last_interrupt_time = 0;
+    uint32_t current_time = esp_timer_get_time();  // Get time in microseconds
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE; // TODO: What is this? 
+    if (current_time - last_interrupt_time > 200000) {  // 200 ms debounce time
+        if (!fastPolling) {
+            xTimerChangePeriodFromISR(timerHandles->light, pdMS_TO_TICKS(FAST_POLL_RATE), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(timerHandles->air, pdMS_TO_TICKS(FAST_POLL_RATE), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(timerHandles->soil, pdMS_TO_TICKS(FAST_POLL_RATE), &xHigherPriorityTaskWoken);
+            fastPolling = 1;
+        } else {
+            xTimerChangePeriodFromISR(timerHandles->light, pdMS_TO_TICKS(SLOW_POLL_RATE), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(timerHandles->air, pdMS_TO_TICKS(SLOW_POLL_RATE), &xHigherPriorityTaskWoken);
+            xTimerChangePeriodFromISR(timerHandles->soil, pdMS_TO_TICKS(SLOW_POLL_RATE), &xHigherPriorityTaskWoken);
+            fastPolling = 0;
+        }
+    }
+    last_interrupt_time = current_time;
+
+}
+
+void IRAM_ATTR buttonTwoInterruptHandler(void* args) {
+    static uint32_t last_interrupt_time = 0;
+    uint32_t current_time = esp_timer_get_time();  // Get time in microseconds
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE; 
+    int flag = 0;
+    if (current_time - last_interrupt_time > 200000) {  // 200 ms debounce time
+        flag = !flag;
+        xQueueSendFromISR(RRQueue, &flag, &xHigherPriorityTaskWoken);
+    }
+    last_interrupt_time = current_time;
+}
+
+void setupInterruptButtonOne(TimerHandles* args) {
+    // Set button 1 pin to interrupt on high level
+    gpio_config_t io_conf; 
+    io_conf.pin_bit_mask = (1ULL<<BTN_1_GPIO_PIN);
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+    io_conf.intr_type = GPIO_INTR_NEGEDGE;
+    gpio_config(&io_conf);
+    gpio_install_isr_service(0);
+    gpio_isr_handler_add(BTN_1_GPIO_PIN, &buttonOneInterruptHandler, args);
+}
+
+void setupInterruptButtonTwo() {
+    // Set button 2 pin to interrupt on high level
+    gpio_config_t io_conf; 
+    io_conf.pin_bit_mask = (1ULL<<BTN_2_GPIO_PIN);
+    io_conf.mode = GPIO_MODE_INPUT;
+    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
+    io_conf.intr_type = GPIO_INTR_NEGEDGE;
+    gpio_config(&io_conf);
+    gpio_isr_handler_add(BTN_2_GPIO_PIN, &buttonTwoInterruptHandler, (void *) 0);
+}
+
 void setupQueues() {
-    displayQueue = xQueueCreate(20, sizeof(struct Message*));
-    if (displayQueue == NULL) {
-        printf("Queue creation went wrong!\n");
-    } else {
-        printf("Queue creation was successful!\n");
-    }
-    rgbQueue = xQueueCreate(20, sizeof(struct Message*));
-    if (rgbQueue == NULL) {
-        printf("Queue creation went wrong!\n");
-    } else {
-        printf("Queue creation was successful!\n");
-    }
+    // displayQueue = xQueueCreate(20, sizeof(struct Message*));
+    // if (displayQueue == NULL) {
+    //     printf("Queue creation went wrong!\n");
+    // } else {
+    //     printf("Queue creation was successful!\n");
+    // }
+    // rgbQueue = xQueueCreate(20, sizeof(struct Message*));
+    // if (rgbQueue == NULL) {
+    //     printf("Queue creation went wrong!\n");
+    // } else {
+    //     printf("Queue creation was successful!\n");
+    // }
     dashboardQueue = xQueueCreate(20, sizeof(struct Message*));
     if (dashboardQueue == NULL) {
         printf("Queue creation went wrong!\n");
     } else {
         printf("Queue creation was successful!\n");
     }
+    // RRQueue = xQueueCreate(5, sizeof(int));
+    // if (RRQueue == NULL) {
+    //     printf("Queue creation went wrong!\n");
+    // } else {
+    //     printf("Queue creation was successful!\n");
+    // }
+}
+
+void checkRRQueue() {
+    int flag = 0;
+    while(1) {
+        if (xQueueReceive(RRQueue, &flag, (TickType_t) 10) == pdTRUE) {
+            if (flag) {
+                rickroll();
+            }
+        }
+        vTaskDelay(pdMS_TO_TICKS(2000));
+    }
+}
+
+void setupRR() {
+    
+    
 }
 
 void soilPollCB(TimerHandle_t xTimer) {
     struct SoilData soil = soilPoll();
-    struct Message* msg1 = (struct Message*) malloc(sizeof(struct Message));
-    msg1->mode = 'S';
-    msg1->sensorData.soil.temp = soil.temp;
-    msg1->sensorData.soil.moist = soil.moist;
-    if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 0) != pdTRUE) {
-        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the soil sensor1!\n");
-    }
+    // struct Message* msg1 = (struct Message*) malloc(sizeof(struct Message));
+    // msg1->mode = 'S';
+    // msg1->sensorData.soil.temp = soil.temp;
+    // msg1->sensorData.soil.moist = soil.moist;
+    // if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 0) != pdTRUE) {
+    //     ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the soil sensor1!\n");
+    // }
     struct Message* msg2 = (struct Message*) malloc(sizeof(struct Message));
     msg2->mode = 'S';
     msg2->sensorData.soil.temp = soil.temp;
@@ -119,28 +205,28 @@ void soilPollCB(TimerHandle_t xTimer) {
 
 void tempHumidPollCB(TimerHandle_t xTimer) {
     struct AirData air = tempHumidPoll();
-    struct Message* msg1 = (struct Message*) malloc(sizeof(struct Message));
-    msg1->mode = 'A';
-    msg1->sensorData.air.valid = true;
-    msg1->sensorData.air.temp = air.temp;
-    msg1->sensorData.air.humid = air.humid;
-    struct Message* msg2 = (struct Message*) malloc(sizeof(struct Message));
-    msg2->mode = 'A';
-    msg2->sensorData.air.valid = true;
-    msg2->sensorData.air.temp = air.temp;
-    msg2->sensorData.air.humid = air.humid;
+    // struct Message* msg1 = (struct Message*) malloc(sizeof(struct Message));
+    // msg1->mode = 'A';
+    // msg1->sensorData.air.valid = true;
+    // msg1->sensorData.air.temp = air.temp;
+    // msg1->sensorData.air.humid = air.humid;
+    // struct Message* msg2 = (struct Message*) malloc(sizeof(struct Message));
+    // msg2->mode = 'A';
+    // msg2->sensorData.air.valid = true;
+    // msg2->sensorData.air.temp = air.temp;
+    // msg2->sensorData.air.humid = air.humid;
     struct Message* msg3 = (struct Message*) malloc(sizeof(struct Message));
     msg3->mode = 'A';
     msg3->sensorData.air.valid = true;
     msg3->sensorData.air.temp = air.temp;
     msg3->sensorData.air.humid = air.humid;
 
-    if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 0) != pdTRUE) {
-        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
-    }
-    if(xQueueSend(rgbQueue, (void*) &msg2, (TickType_t) 0) != pdTRUE) {
-        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
-    }
+    // if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 0) != pdTRUE) {
+    //     ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
+    // }
+    // if(xQueueSend(rgbQueue, (void*) &msg2, (TickType_t) 0) != pdTRUE) {
+    //     ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
+    // }
     if(xQueueSend(dashboardQueue, (void*) &msg3, (TickType_t) 0) != pdTRUE) {
         ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the air sensor!\n");
     }
@@ -148,52 +234,18 @@ void tempHumidPollCB(TimerHandle_t xTimer) {
 
 void lightPollCB(TimerHandle_t xTimer) {
     int light = lightPoll();
-    struct Message* msg1 = (struct Message*) malloc(sizeof(struct Message));
-    msg1->mode = 'L';
-    msg1->sensorData.light = light;
-    if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 0) != pdTRUE) {
-        ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the light sensor!\n");
-    }
+    // struct Message* msg1 = (struct Message*) malloc(sizeof(struct Message));
+    // msg1->mode = 'L';
+    // msg1->sensorData.light = light;
+    // if(xQueueSend(displayQueue, (void*) &msg1, (TickType_t) 0) != pdTRUE) {
+    //     ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the light sensor!\n");
+    // }
     struct Message* msg2 = (struct Message*) malloc(sizeof(struct Message));
     msg2->mode = 'L';
     msg2->sensorData.light = light;
     if(xQueueSend(dashboardQueue, (void*) &msg2, (TickType_t) 0) != pdTRUE) {
         ESP_LOGE(ERROR_TAG, "There was an error, transmitting data from the light sensor!\n");
     }
-}
-
-void IRAM_ATTR buttonOneInterruptHandler(void* args) {
-    TimerHandles* timerHandles = (TimerHandles*) args;
-    static uint32_t last_interrupt_time = 0;
-    uint32_t current_time = esp_timer_get_time();  // Get time in microseconds
-    BaseType_t xHigherPriorityTaskWoken = pdFALSE; // TODO: What is this? 
-    if (current_time - last_interrupt_time > 200000) {  // 200 ms debounce time
-        if (!fastPolling) {
-            xTimerChangePeriodFromISR(timerHandles->light, pdMS_TO_TICKS(20000), &xHigherPriorityTaskWoken);
-            xTimerChangePeriodFromISR(timerHandles->air, pdMS_TO_TICKS(20000), &xHigherPriorityTaskWoken);
-            xTimerChangePeriodFromISR(timerHandles->soil, pdMS_TO_TICKS(20000), &xHigherPriorityTaskWoken);
-            fastPolling = 1;
-        } else {
-            xTimerChangePeriodFromISR(timerHandles->light, pdMS_TO_TICKS(60000), &xHigherPriorityTaskWoken);
-            xTimerChangePeriodFromISR(timerHandles->air, pdMS_TO_TICKS(60000), &xHigherPriorityTaskWoken);
-            xTimerChangePeriodFromISR(timerHandles->soil, pdMS_TO_TICKS(60000), &xHigherPriorityTaskWoken);
-            fastPolling = 0;
-        }
-    }
-    last_interrupt_time = current_time;
-
-}
-
-void setupInterruptButton(TimerHandles* args) {
-    // Set button 1 pin to interrupt on high level
-    gpio_config_t io_conf; 
-    io_conf.pin_bit_mask = (1ULL<<BTN_1_GPIO_PIN);
-    io_conf.mode = GPIO_MODE_INPUT;
-    io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
-    io_conf.intr_type = GPIO_INTR_NEGEDGE;
-    gpio_config(&io_conf);
-    gpio_install_isr_service(0);
-    gpio_isr_handler_add(BTN_1_GPIO_PIN, &buttonOneInterruptHandler, args);
 }
 
 void app_main(void)
@@ -213,36 +265,35 @@ void app_main(void)
     i2c_param_config(I2C_NUM, &conf);
     ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0));
 
-
-    // wdt_hal_context_t wdt_context;
-    // wdt_hal_init(&wdt_context, WDT_MWDT0, 0, false);
-    // wdt_hal_disable(&wdt_context);
-
     setupQueues();
     setupSensors();
-    setupLED();
-    setup_display();
+    // setupLED();
+    // setup_display();
     setupWifi();
+    // setupBuzzer();
+    
 
     TimerHandle_t light_poll, temp_humid_poll, soil_poll;
 
-    light_poll      = xTimerCreate("light_poll", pdMS_TO_TICKS(20000), pdTRUE, (void *)0, lightPollCB);
-    temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(20000), pdTRUE, (void *)0, tempHumidPollCB);
-    soil_poll       = xTimerCreate("soil_poll", pdMS_TO_TICKS(20000), pdTRUE, (void *)0, soilPollCB);
+    light_poll      = xTimerCreate("light_poll", pdMS_TO_TICKS(FAST_POLL_RATE), pdTRUE, (void *)0, lightPollCB);
+    temp_humid_poll = xTimerCreate("temp_humid_poll", pdMS_TO_TICKS(FAST_POLL_RATE), pdTRUE, (void *)0, tempHumidPollCB);
+    soil_poll       = xTimerCreate("soil_poll", pdMS_TO_TICKS(FAST_POLL_RATE), pdTRUE, (void *)0, soilPollCB);
 
     TimerHandles* handles = (TimerHandles*) malloc(sizeof(TimerHandles));
     handles->light = light_poll; 
     handles->soil = soil_poll;
     handles->air = temp_humid_poll;
 
-    setupInterruptButton((void*) handles);
+    // setupInterruptButtonOne((void*) handles);
+    // setupInterruptButtonTwo();
 
-    vTaskDelay(pdMS_TO_TICKS(20000));
+    vTaskDelay(pdMS_TO_TICKS(WIFI_DELAY));
 
     
-    xTaskCreate(update_display, "display", 8192 * 2, (void*) displayQueue, 2, NULL);
-    xTaskCreate(update_rgbled, "rgbled", 8192 * 2, (void*) rgbQueue, 1, NULL);
-    xTaskCreate(post_data, "post_data", 8192 * 2, (void*) dashboardQueue, 3, NULL);
+    // xTaskCreate(update_display, "display", TASK_STACK, (void*) displayQueue, 2, NULL);
+    // xTaskCreate(update_rgbled, "rgbled", TASK_STACK, (void*) rgbQueue, 1, NULL);
+    xTaskCreate(post_data, "post_data", TASK_STACK, (void*) dashboardQueue, 3, NULL);
+    // xTaskCreate(checkRRQueue, "RR", TASK_STACK, (void*) RRQueue, 8, NULL);
 
     xTimerStart(light_poll, pdMS_TO_TICKS(500));
     vTaskDelay(pdMS_TO_TICKS(4000));
@@ -252,6 +303,5 @@ void app_main(void)
 
     while(1) {
         vTaskDelay(10);
-        //esp_task_wdt_reset();
     }
 }

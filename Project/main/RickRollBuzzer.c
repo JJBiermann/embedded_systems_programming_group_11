@@ -45,56 +45,18 @@ int beatlengthInMs = 133; // determines tempo
 float beatseparationconstant = 0.3;
 int volumeInPercent = 25;
 
-// Parts 1 and 2 (Intro)
-
-int song1_intro_melody[] =
-{c5s, e5f, e5f, f5, a5f, f5s, f5, e5f, c5s, e5f, rest, a4f, a4f};
-
-int song1_intro_rhythmn[] =
-{6, 10, 6, 6, 1, 1, 1, 1, 6, 10, 4, 2, 10};
-
-// Parts 3 or 5 (Verse 1)
-
-int song1_verse1_melody[] =
-{ rest, c4s, c4s, c4s, c4s, e4f, rest, c4, b3f, a3f,
-  rest, b3f, b3f, c4, c4s, a3f, a4f, a4f, e4f,
-  rest, b3f, b3f, c4, c4s, b3f, c4s, e4f, rest, c4, b3f, b3f, a3f,
-  rest, b3f, b3f, c4, c4s, a3f, a3f, e4f, e4f, e4f, f4, e4f,
-  c4s, e4f, f4, c4s, e4f, e4f, e4f, f4, e4f, a3f,
-  rest, b3f, c4, c4s, a3f, rest, e4f, f4, e4f
+int song1_chorus_melody[] = { 
+    b4f, b4f, a4f, a4f,
+    f5, f5, e5f, b4f, b4f, a4f, a4f, e5f, e5f, c5s, c5, b4f,
+    c5s, c5s, c5s, c5s,
+    c5s, e5f, c5, b4f, a4f, a4f, a4f, e5f, c5s
 };
 
-int song1_verse1_rhythmn[] =
-{ 2, 1, 1, 1, 1, 2, 1, 1, 1, 5,
-  1, 1, 1, 1, 3, 1, 2, 1, 5,
-  1, 1, 1, 1, 1, 1, 1, 2, 1, 1, 1, 1, 3,
-  1, 1, 1, 1, 2, 1, 1, 1, 1, 1, 1, 4,
-  5, 1, 1, 1, 1, 1, 1, 1, 2, 2,
-  2, 1, 1, 1, 3, 1, 1, 1, 3
-};
-
-// Parts 4 or 6 (Chorus)
-
-int song1_chorus_melody[] =
-{ b4f, b4f, a4f, a4f,
-  f5, f5, e5f, b4f, b4f, a4f, a4f, e5f, e5f, c5s, c5, b4f,
-  c5s, c5s, c5s, c5s,
-  c5s, e5f, c5, b4f, a4f, a4f, a4f, e5f, c5s,
-  b4f, b4f, a4f, a4f,
-  f5, f5, e5f, b4f, b4f, a4f, a4f, a5f, c5, c5s, c5, b4f,
-  c5s, c5s, c5s, c5s,
-  c5s, e5f, c5, b4f, a4f, rest, a4f, e5f, c5s, rest
-};
-
-int song1_chorus_rhythmn[] =
-{ 1, 1, 1, 1,
-  3, 3, 6, 1, 1, 1, 1, 3, 3, 3, 1, 2,
-  1, 1, 1, 1,
-  3, 3, 3, 1, 2, 2, 2, 4, 8,
-  1, 1, 1, 1,
-  3, 3, 6, 1, 1, 1, 1, 3, 3, 3, 1, 2,
-  1, 1, 1, 1,
-  3, 3, 3, 1, 2, 2, 2, 4, 8, 4
+int song1_chorus_rhythmn[] = { 
+    1, 1, 1, 1,
+    3, 3, 6, 1, 1, 1, 1, 3, 3, 3, 1, 2,
+    1, 1, 1, 1,
+    3, 3, 3, 1, 2, 2, 2, 4, 8
 };
 
 void setupBuzzer()
@@ -103,7 +65,7 @@ void setupBuzzer()
         .speed_mode       = BUZZ_MODE,
         .duty_resolution  = BUZZ_DUTY_RES,
         .timer_num        = BUZZ_TIMER,
-        .freq_hz          = BUZZ_FREQUENCY,  // Set output frequency at 1 kHz
+        .freq_hz          = BUZZ_FREQUENCY,
         .clk_cfg          = LEDC_AUTO_CLK
     };
     ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer_buzz));
@@ -115,48 +77,32 @@ void setupBuzzer()
         .timer_sel      = BUZZ_TIMER,
         .intr_type      = LEDC_INTR_DISABLE,
         .gpio_num       = BUZZ_OUTPUT_IO,
-        .duty           = 0, // Set duty to 0%
+        .duty           = 0,
         .hpoint         = 0
     };
     ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel_buzz));
-
-    // Set duty
-    ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 4096)); //50% duty
-    // Update duty to apply the new value
+    ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 0));
     ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL));
-
- // threshold = analogRead(sensor) + 250;
 }
 
 void play(int notes[], int durations[], int notesSize, int durationsSize) {
     for(int i = 0; i < notesSize; i++) {
         if (notes[i] == -1) {
-            // Set duty
-            ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 0)); //0% duty
-            // Update duty to apply the new value
+            ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 0));
             ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL));
         } else {
-            // Set duty
             ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 4096)); 
-                       // Update duty to apply the new value
             ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL));
-
             ESP_ERROR_CHECK(ledc_set_freq(BUZZ_MODE, BUZZ_TIMER, notes[i])); 
         }
         vTaskDelay((durations[i] * beatlengthInMs) / portTICK_PERIOD_MS);
-        ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 0)); //0% duty
+        ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 0));
         // Update duty to apply the new value
         ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL));
         vTaskDelay((beatseparationconstant * beatlengthInMs) / portTICK_PERIOD_MS);
     }
-    // Set duty
-    ESP_ERROR_CHECK(ledc_set_duty(BUZZ_MODE, BUZZ_CHANNEL, 0)); //0% duty
-    // Update duty to apply the new value
-    ESP_ERROR_CHECK(ledc_update_duty(BUZZ_MODE, BUZZ_CHANNEL));    
 }
 
 void rickroll() {
-    play(song1_intro_melody, song1_intro_rhythmn, sizeof(song1_intro_melody), sizeof(song1_intro_rhythmn));
-    play(song1_verse1_melody, song1_verse1_rhythmn, sizeof(song1_verse1_melody), sizeof(song1_verse1_rhythmn));
-    play(song1_chorus_melody, song1_chorus_rhythmn, sizeof(song1_chorus_melody), sizeof(song1_chorus_rhythmn));
+    play(song1_chorus_melody, song1_chorus_rhythmn, sizeof(song1_chorus_melody) / sizeof(int), sizeof(song1_chorus_rhythmn) / sizeof(int));
 }

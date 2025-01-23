@@ -126,7 +126,6 @@ void setupInterruptButtonOne(TimerHandles* args) {
     io_conf.pull_up_en = GPIO_PULLUP_ENABLE;
     io_conf.intr_type = GPIO_INTR_NEGEDGE;
     gpio_config(&io_conf);
-    gpio_install_isr_service(0);
     gpio_isr_handler_add(BTN_1_GPIO_PIN, &buttonOneInterruptHandler, args);
 }
 
@@ -284,8 +283,9 @@ void app_main(void)
     handles->soil = soil_poll;
     handles->air = temp_humid_poll;
 
-    // setupInterruptButtonOne((void*) handles);
-    // setupInterruptButtonTwo();
+    gpio_install_isr_service(0);
+    setupInterruptButtonOne((void*) handles);
+    setupInterruptButtonTwo();
 
     vTaskDelay(pdMS_TO_TICKS(WIFI_DELAY));
 

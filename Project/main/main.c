@@ -44,8 +44,6 @@
 #include "hal/wdt_hal.h"
 #include "esp_task_wdt.h"
 
-void setupDashboardQueue();
-
 void setupInterruptButton() {
     // Set button 1 pin to interrupt on high level
     gpio_config_t io_conf; 
@@ -97,11 +95,15 @@ void app_main(void)
 
     i2c_param_config(I2C_NUM, &conf);
     ESP_ERROR_CHECK(i2c_driver_install(I2C_NUM, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0));
+
     setupSensors();
     setupWifi(); 
+
     vTaskDelay(pdMS_TO_TICKS(20000));
+
     setupQueuesAndTasks();
     setupDashboardQueue();
+
     xTaskCreate(post_data, "post_data", 8192 * 2, (void*) dashboardQueue, 3, NULL);
 
     setupInterruptButton();

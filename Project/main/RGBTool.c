@@ -1,6 +1,8 @@
 #include "RGBTool.h"
 #include "SensorTool.h"
 
+
+
 void setupLED() {
     ledc_timer_config_t ledc_timer = {
         .speed_mode       = LEDC_MODE,
@@ -84,9 +86,9 @@ void update_rgbled(void* pvParameters) {
             }   
             free(msg);
         } else {
-            ESP_LOGW("RGB", "RGB queue empty.");
+            ESP_LOGW("RGB", "Queue empty.");
         }
-        vTaskDelay(pdMS_TO_TICKS(3000));
+        vTaskDelay(pdMS_TO_TICKS(getPollDelay()));
     }
 
 }

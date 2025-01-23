@@ -1,6 +1,5 @@
+
 #include "SensorTool.h"
-
-
 
 void setupSensors() {
     ESP_ERROR_CHECK(am2320_shared_i2c_init(&dev, I2C_NUM));

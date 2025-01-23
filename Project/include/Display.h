@@ -32,6 +32,8 @@
 //Stemma soil sensor library
 #include "Adafruit_Stemma_soil_sensor.h"
 
+#include "PollConfig.h"
+
 static SSD1306_t oled_display;
 
 void setup_display(void);

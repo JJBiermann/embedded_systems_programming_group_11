@@ -1,5 +1,8 @@
-
+#ifndef RGBTOOL_H
+#define RGBTOOL_H
 #include "driver/ledc.h"
+
+#include "PollConfig.h"
 
 #define LEDC_TIMER              LEDC_TIMER_0
 #define LEDC_MODE               LEDC_LOW_SPEED_MODE
@@ -35,3 +38,4 @@ void setRGB(struct RGB);
 void update_rgbled(void* pvParameters);
 
 
+#endif

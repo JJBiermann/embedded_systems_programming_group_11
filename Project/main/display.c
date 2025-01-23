@@ -1,16 +1,11 @@
 #include "Display.h"
 #include "SensorTool.h"
+
 #include "freertos/queue.h"
 
 void setup_display(void) {
-    int center, top; 
     vTaskDelay(pdMS_TO_TICKS(1000));
-    //Initialize the display (shared i2c) only once after boot.
     i2c_master_shared_i2c_init(&oled_display);
-
-    //Uncomment this if you want to flip the display
-    //dev._flip = true;
-
     ssd1306_init(&oled_display, 128, 64);
 
     // Note: Apparently you have to clear the screen twice, to no longer encounter the fragments.
@@ -18,7 +13,6 @@ void setup_display(void) {
     ssd1306_clear_screen(&oled_display, false);
 
     ssd1306_display_text(&oled_display, 0, "JOHN'S STATS:      ", 16, false);
-
 }
 
 void update_display(void* pvParameters) {
@@ -72,8 +66,8 @@ void update_display(void* pvParameters) {
             }
             free(msg);
         } else {
-            ESP_LOGW("Display", "Display queue empty.");
+            ESP_LOGW("Display", "Queue empty.");
         }
-        vTaskDelay(pdMS_TO_TICKS(3000));
+        vTaskDelay(pdMS_TO_TICKS(getPollDelay()));
     }
 }

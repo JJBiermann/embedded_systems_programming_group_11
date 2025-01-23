@@ -33,7 +33,7 @@ const SensorData = () => {
         };
 
         fetchData();
-        const interval = setInterval(fetchData, 15000);  
+        const interval = setInterval(fetchData, 12000);  
 
         return () => clearInterval(interval);  
     }, []);

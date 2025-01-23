@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include "esp_event.h"
 
+#include "PollConfig.h"
+
 #define WIFI_SSID "Magnus"
 #define WIFI_PASS "magnus123"
 #define SERVER_URL "https://172.20.10.2:5000/log"
